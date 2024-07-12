@@ -641,7 +641,7 @@ We can compose dependent arrows given a covariant type family.
 ## Dependent composition try
 
 ```rzk
-#def dhom-to-hom-total-type
+#def dhom-hom-total-type
   ( A : U)
   ( x y : A)
   ( f : hom A x y)
@@ -651,51 +651,13 @@ We can compose dependent arrows given a covariant type family.
   ( ff : dhom A x y f C u v)
   : hom (total-type A C) (x , u) (y , v)
   := \ t → (f t , ff t)
-```
 
-```rzk
-#def dhom-to-hom
-  ( A : U)
-  ( x y : A)
-  ( f : hom A x y)
-  ( C : A → U)
-  ( u : C x)
-  ( v : C y)
-  ( ff : dhom A x y f C u v)
-  : hom A x y
-  := f
-```
-
-```rzk
-#def dhom-to-hom-total-type-on-pairs
-  ( A : U)
-  ( is-segal-A : is-segal A)
-  ( x y z : A)
-  ( f : hom A x y)
-  ( g : hom A y z)
-  ( C : A → U)
-  ( is-covariant-C : is-covariant A C)
-  ( u : C x)
-  ( v : C y)
-  ( w : C z)
-  ( ff : dhom A x y f C u v)
-  ( gg : dhom A y z g C v w)
-  : product
-     ( hom (total-type A C) (x , u) (y , v))
-     ( hom (total-type A C) (y , v) (z , w))
-  :=
-    ( ( dhom-to-hom-total-type A x y f C u v ff)
-    , ( dhom-to-hom-total-type A y z g C v w gg))
-```
-
-```rzk
-#def hom-total-type-to-dhom
+#def dhom-hom-total-type-proection
   ( A : U)
   ( is-segal-A : is-segal A)
   ( x y : A)
   ( f : hom A x y)
   ( C : A → U)
-  ( is-covariant-C : is-covariant A C)
   ( u : C x)
   ( v : C y)
   : ( Σ ( k : hom (total-type A C) (x , u) (y , v))
@@ -707,16 +669,12 @@ We can compose dependent arrows given a covariant type family.
            ( hom A x y)
            ( \ g → dhom A x y g C u v)
            ( \ t → first (k t)) f p (\ t → second (k t)) t)
-```
 
-```rzk
-#def dhom-to-hom-total-type-over
+#def hom-total-type-projection-dhom
   ( A : U)
-  ( is-segal-A : is-segal A)
   ( x y : A)
   ( f : hom A x y)
   ( C : A → U)
-  ( is-covariant-C : is-covariant A C)
   ( u : C x)
   ( v : C y)
   : dhom A x y f C u v
@@ -724,23 +682,115 @@ We can compose dependent arrows given a covariant type family.
     , ( ( \ t → first (k t)) =_{hom A x y} f))
   :=
     \ ff →
-    ( dhom-to-hom-total-type A x y f C u v ff
+    ( dhom-hom-total-type A x y f C u v ff
     , refl)
 ```
 
 ```rzk
-#def is-over-dhom-to-hom-total-type
+#def equiv-hom-total-type-dhom-choice
   ( A : U)
-  ( is-segal-A : is-segal A)
   ( x y : A)
-  ( f : hom A x y)
   ( C : A → U)
-  ( is-covariant-C : is-covariant A C)
   ( u : C x)
   ( v : C y)
+  : Equiv
+      ( hom (total-type A C) (x , u) (y , v))
+      ( Σ ( f : hom A x y)
+        , ( dhom A x y f C u v))
+  :=
+    axiom-choice
+      ( 2)
+      ( Δ¹)
+      ( ∂Δ¹)
+      ( \ t → A)
+      ( \ t → \ x → C x)
+      ( \ t →
+        recOR
+          ( t ≡ 0₂ ↦ x
+          , t ≡ 1₂ ↦ y))
+      ( \ t →
+        recOR
+          ( t ≡ 0₂ ↦ u
+          , t ≡ 1₂ ↦ v))
+```
+
+```rzk
+#def dhom2-to-hom2-total-type
+  ( A : U)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
   ( ff : dhom A x y f C u v)
-  : ( \ t → first (dhom-to-hom-total-type A x y f C u v ff t)) =_{hom A x y} f
-  := refl
+  ( gg : dhom A y z g C v w)
+  : ( Σ ( h : hom A x z)
+      , Σ ( α : hom2 A x y z f g h)
+        , ( Σ ( hh : dhom A x z h C u w)
+          , dhom2 A x y z f g h α C u v w ff gg hh))
+    → ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+        , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+            ( dhom-hom-total-type A x y f C u v ff)
+            ( dhom-hom-total-type A y z g C v w gg) k))
+  :=
+    \ (h , (α , (hh , k))) →
+      ( dhom-hom-total-type A x z h C u w hh , \ t → (α t , k t))
+```
+
+```rzk
+#def hom2-total-type-to-dhom2
+  ( A : U)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+      , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+          ( dhom-hom-total-type A x y f C u v ff)
+          ( dhom-hom-total-type A y z g C v w gg) k))
+    → Σ ( h : hom A x z)
+      , Σ ( α : hom2 A x y z f g h)
+        , ( Σ ( hh : dhom A x z h C u w)
+          , dhom2 A x y z f g h α C u v w ff gg hh)
+  :=
+    \ (k , kk) →
+      ( \ t → first (k t)
+      , ( \ t → first (kk t)
+        , ( \ t → second (kk (t , t)) , \ t → second (kk t))))
+```
+
+```rzk
+#def equiv-hom2-total-type-dhom2
+  ( A : U)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : Equiv
+      ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+      , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+          ( dhom-hom-total-type A x y f C u v ff)
+          ( dhom-hom-total-type A y z g C v w gg) k))
+      ( Σ ( h : hom A x z)
+        , Σ ( α : hom2 A x y z f g h)
+          , ( Σ ( hh : dhom A x z h C u w)
+            , dhom2 A x y z f g h α C u v w ff gg hh))
+  :=
+    ( hom2-total-type-to-dhom2 A x y z f g C u v w ff gg
+      , ( ( dhom2-to-hom2-total-type A x y z f g C u v w ff gg , \ t → refl)
+        , ( dhom2-to-hom2-total-type A x y z f g C u v w ff gg , \ t → refl)))
 ```
 
 ```rzk
@@ -771,8 +821,8 @@ We can compose dependent arrows given a covariant type family.
       ( is-segal-total-type-covariant-family-is-segal-base
         A C is-covariant-C is-segal-A)
       ( x , u) (y , v) (z , w)
-      ( dhom-to-hom-total-type A x y f C u v ff)
-      ( dhom-to-hom-total-type A y z g C v w gg)
+      ( dhom-hom-total-type A x y f C u v ff)
+      ( dhom-hom-total-type A y z g C v w gg)
 ```
 
 ```rzk
@@ -963,85 +1013,6 @@ We can compose dependent arrows given a covariant type family.
 --   : ( Σ ( k : hom (total-type A C) (x , u) (z , w))
 --     , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
 --         ( \ r → (f r , ff r)) (\ s → (g s , gg s)) k))
-```
-
-```rzk
-#def dhom2-to-dhom
-  ( A : U)
-  ( x y z : A)
-  ( f : hom A x y)
-  ( g : hom A y z)
-  ( h : hom A x z)
-  ( α : hom2 A x y z f g h)
-  ( C : A → U)
-  ( u : C x)
-  ( v : C y)
-  ( w : C z)
-  ( ff : dhom A x y f C u v)
-  ( gg : dhom A y z g C v w)
-  ( hh : dhom A x z h C u w)
-  : dhom2 A x y z f g h α C u v w ff gg hh
-    → dhom A x z h C u w
-  :=
-    \ k →
-      \ t →
-        k (t , t)
-```
-
-```rzk
-#def dhom2-to-hom2-total-type
-  ( A : U)
-  ( is-segal-A : is-segal A)
-  ( x y z : A)
-  ( f : hom A x y)
-  ( g : hom A y z)
-  ( C : A → U)
-  ( is-covariant-C : is-covariant A C)
-  ( u : C x)
-  ( v : C y)
-  ( w : C z)
-  ( ff : dhom A x y f C u v)
-  ( gg : dhom A y z g C v w)
-  : ( Σ ( h : hom A x z)
-      , Σ ( α : hom2 A x y z f g h)
-        , ( Σ ( hh : dhom A x z h C u w)
-          , dhom2 A x y z f g h α C u v w ff gg hh))
-    → ( Σ ( k : hom (total-type A C) (x , u) (z , w))
-        , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
-            ( dhom-to-hom-total-type A x y f C u v ff)
-            ( dhom-to-hom-total-type A y z g C v w gg) k))
-  :=
-    \ (h , (α , (hh , k))) →
-      ( dhom-to-hom-total-type A x z h C u w hh , \ t → (α t , k t))
-```
-
-```rzk
-#def hom2-total-type-to-dhom2
-  ( A : U)
-  ( is-segal-A : is-segal A)
-  ( x y z : A)
-  ( f : hom A x y)
-  ( g : hom A y z)
-  ( C : A → U)
-  ( is-covariant-C : is-covariant A C)
-  ( u : C x)
-  ( v : C y)
-  ( w : C z)
-  ( ff : dhom A x y f C u v)
-  ( gg : dhom A y z g C v w)
-  : ( Σ ( k : hom (total-type A C) (x , u) (z , w))
-      , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
-          ( dhom-to-hom-total-type A x y f C u v ff)
-          ( dhom-to-hom-total-type A y z g C v w gg) k))
-    → Σ ( h : hom A x z)
-      , Σ ( α : hom2 A x y z f g h)
-        , ( Σ ( hh : dhom A x z h C u w)
-          , dhom2 A x y z f g h α C u v w ff gg hh)
-  :=
-    \ (k , kk) →
-      ( \ t → first (k t)
-      , ( \ t → first (kk t)
-        , ( \ t → second (kk (t , t)) , \ t → second (kk t))))
 ```
 
 ```rzk title="RS17, Remark 8.11"

@@ -844,6 +844,70 @@ arrows.
       ( e)
 ```
 
+```rzk title="RS17, Proposition 10.9"
+-- #def factor123 uses (extext funext weakfunext)
+--   ( A X : U)
+--   ( is-rezk-A : is-rezk A)
+--   ( f g : X → A)
+--   : ( iso-eq
+--       ( X → A)
+--       ( is-segal-function-type
+--         ( funext)
+--         ( X)
+--         ( \ _ → A)
+--         ( \ _ → first (is-rezk-A)))
+--       ( f)
+--       ( g))
+--   = comp
+--       ( f = g)
+--       ( ( x : X) → (f x =_{A} g x))
+--       ( Iso
+--         ( X → A)
+--         ( is-segal-function-type
+--           ( funext)
+--           ( X)
+--           ( \ _ → A)
+--           ( \ _ → first (is-rezk-A)))
+--         ( f)
+--         ( g))
+--       ( comp
+--         ( ( x : X) → ((f x)=_{A} (g x)))
+--         ( ( x : X) → (Iso A (first (is-rezk-A)) (f x) (g x)))
+--         ( Iso
+--           ( X → A)
+--           ( is-segal-function-type
+--             ( funext)
+--             ( X)
+--             ( \ _ → A)
+--             ( \ _ → first (is-rezk-A)))
+--           ( f)
+--           ( g))
+--         ( first (first (second(
+--           ( iso-extensionality
+--             ( X)
+--             ( \ _ → A)
+--             ( \ _ → first (is-rezk-A))
+--             ( f)
+--             ( g))))))
+--         ( \ H → \ x → iso-eq A (first (is-rezk-A)) (f x) (g x) (H x)))
+--       ( htpy-eq X (\ _ → A) f g)
+--   := refl
+
+-- Needs more effort.
+
+-- #def is-rezk-function-type-is-rezk-target uses (funext)
+--   ( A X : U)
+--   ( is-rezk-A : is-rezk A)
+--   : is-rezk((x : X) → A)
+--   :=
+--     ( is-segal-function-type
+--       ( funext)
+--       ( X)
+--       ( \ _ → A)
+--       ( \ _ → first (is-rezk-A))
+--     , U)
+```
+
 ## Isomorphisms in discrete types
 
 In a discrete type every arrow is an isomorphisms. This is a straightforward
