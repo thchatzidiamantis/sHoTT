@@ -376,7 +376,6 @@ separate hypothesis.
     ( A : U) → (C : A → U)
   → ( is-contr-C : (a : A) → is-contr (C a))
   → ( is-contr ((a : A) → C a))
-
 ```
 
 Function extensionality implies weak function extensionality.
@@ -403,6 +402,116 @@ Function extensionality implies weak function extensionality.
         ( map-weakfunext A C is-contr-C)
         ( g)
         ( \ a → second (is-contr-C a) (g a)))))
+```
+
+Weak function extensionality implies function extensionality. One step missing
+from the proof, we have to show that what we call ''Weird-FunExt'' implies
+function extensionality.
+
+```rzk title"Rijke, 13.1"
+#def prod-eq-pair-homotopy
+  ( A : U)
+  ( C : A → U)
+  ( f : (x : A) → C x)
+  : ( Σ ( g : (x : A) → C x)
+      , ( dhomotopy A C f g))
+  → ( ( x : A)
+    → ( Σ ( c : (C x))
+      , ( f x =_{C x} c)))
+  :=
+    \ (g , H) →
+      ( \ x →
+        ( g x , H x))
+
+#def has-retraction-prod-eq-pair-homotopy
+  ( A : U)
+  ( C : A → U)
+  ( f : (x : A) → C x)
+  : has-retraction
+      ( Σ ( g : (x : A) → C x)
+        , ( dhomotopy A C f g))
+      ( ( x : A)
+        → ( Σ ( c : (C x))
+          , ( f x =_{C x} c)))
+      ( prod-eq-pair-homotopy A C f)
+  :=
+    ( ( \ G →
+        ( \ x → first (G x) , \ x → second (G x)))
+    , \ x → refl)
+
+#def is-retract-prod-eq-pair-homotopy
+  ( A : U)
+  ( C : A → U)
+  ( f : (x : A) → C x)
+  : is-retract-of
+      ( Σ ( g : (x : A) → C x)
+        , ( dhomotopy A C f g))
+      ( ( x : A)
+        → ( Σ ( c : (C x))
+          , ( f x =_{C x} c)))
+  :=
+    ( prod-eq-pair-homotopy A C f
+    , has-retraction-prod-eq-pair-homotopy A C f)
+
+#def Weird-FunExt
+  : U
+  :=
+    ( A : U) → (C : A → U)
+  → ( f : (x : A) → C x)
+  → is-contr
+      ( Σ ( g : (x : A) → C x)
+        , ( dhomotopy A C f g))
+
+#def weird-funext-weakfunext
+  ( weakfunext : WeakFunExt)
+  : Weird-FunExt
+  :=
+    \ A C f →
+      is-contr-is-retract-of-is-contr
+        ( Σ ( g : (x : A) → C x)
+          , ( dhomotopy A C f g))
+        ( ( x : A)
+          → ( Σ ( c : (C x))
+              , ( f x =_{C x} c)))
+        ( is-retract-prod-eq-pair-homotopy A C f)
+        ( weakfunext
+          ( A)
+          ( \ x → Σ (c : (C x)) , (f x =_{C x} c))
+          ( \ x → is-contr-based-paths (C x) (f x)))
+
+```
+
+The proof of `weakfunext-funext` works with a weaker version of function
+extensionality only requiring the map in the converse direction.
+
+```rzk
+#def NaiveFunExt
+  : U
+  :=
+    ( A : U) → (C : A → U)
+  → ( f g : (x : A) → B x)
+  → ( p : (x : A) → f x = g x)
+  → ( f = g)
+
+#def naivefunext-funext
+  ( funext : FunExt)
+  : NaiveFunEXt
+  :=
+    first (funext)
+
+#def weakfunext-naivefunext
+  ( naivefunext: NaiveFunExt)
+  : WeakFunExt
+  :=
+    \ A C is-contr-C →
+      ( map-weakfunext A C is-contr-C
+      , ( \ g →
+          ( naivefunext
+            ( A)
+            ( C)
+            ( map-weakfunext A C is-contr-C)
+            ( g)
+          ( \ a → second (is-contr-C a) (g a)))))
 ```
 
 ## Singleton induction
