@@ -500,7 +500,7 @@ extensionality only requiring the map in the converse direction.
     first (funext)
 
 #def weakfunext-naivefunext
-  ( naivefunext: NaiveFunExt)
+  ( naivefunext : NaiveFunExt)
   : WeakFunExt
   :=
     \ A C is-contr-C →
