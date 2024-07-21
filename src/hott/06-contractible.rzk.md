@@ -478,7 +478,6 @@ function extensionality.
           ( A)
           ( \ x → Σ (c : (C x)) , (f x =_{C x} c))
           ( \ x → is-contr-based-paths (C x) (f x)))
-
 ```
 
 The proof of `weakfunext-funext` works with a weaker version of function
@@ -489,15 +488,17 @@ extensionality only requiring the map in the converse direction.
   : U
   :=
     ( A : U) → (C : A → U)
-  → ( f g : (x : A) → B x)
+  → ( f : (x : A) → C x)
+  → ( g : (x : A) → C x)
   → ( p : (x : A) → f x = g x)
   → ( f = g)
 
 #def naivefunext-funext
   ( funext : FunExt)
-  : NaiveFunEXt
+  : NaiveFunExt
   :=
-    first (funext)
+    \ A C f g p →
+      eq-htpy funext A C f g p
 
 #def weakfunext-naivefunext
   ( naivefunext : NaiveFunExt)
