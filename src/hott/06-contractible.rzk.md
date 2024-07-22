@@ -515,6 +515,25 @@ extensionality only requiring the map in the converse direction.
           ( \ a → second (is-contr-C a) (g a)))))
 ```
 
+```rzk
+#def naivefunext-weirdfunext
+  ( weirdfunext : Weird-FunExt)
+  : NaiveFunExt
+  :=
+    \ A C f g p →
+      first-path-Σ
+        ( ( x : A) → C x)
+        ( \ g → dhomotopy A C f g)
+        ( f , \ x → refl)
+        ( g , p)
+        ( all-elements-equal-is-contr
+          ( Σ ( g : (x : A) → C x)
+            , ( dhomotopy A C f g))
+          ( weirdfunext A C f)
+          ( f , \ x → refl)
+          ( g , p))
+```
+
 ## Singleton induction
 
 A type is contractible if and only if it has singleton induction.
