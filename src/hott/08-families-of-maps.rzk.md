@@ -637,7 +637,6 @@ This allows us to apply "based path induction" to a family satisfying the
 fundamental theorem:
 
 ```rzk
--- Please suggest a better name.
 #def ind-based-path
   ( familyequiv : (z : A) → (is-equiv (a = z) (B z) (f z)))
   ( P : (z : A) → B z → U)
@@ -696,8 +695,16 @@ contractible.
 
 ## Weak function extensionality implies function extensionality
 
-```rzk title"Rijke, 13.1"
-#def prod-eq-pair-dhomotopy
+Using the fundamental theorem of identity types, we prove the converse of
+`weakfunext-funext`, so we now know that `#!rzk FunExt` is logically equivalent
+to `#!rzk WeakFunExt`. We follow the proof in Rijke, section 13.1.
+
+We first fix one of the two functions and show that `#!rzk WeakFunExt` implies a
+version of function extensionality that asserts that a type of "maps together
+with homotopies" is contractible.
+
+```rzk
+#def components-dhomotopy
   ( A : U)
   ( C : A → U)
   ( f : (x : A) → C x)
@@ -711,7 +718,7 @@ contractible.
       ( \ x →
         ( g x , H x))
 
-#def has-retraction-prod-eq-pair-dhomotopy
+#def has-retraction-components-dhomotopy
   ( A : U)
   ( C : A → U)
   ( f : (x : A) → C x)
@@ -721,13 +728,13 @@ contractible.
       ( ( x : A)
         → ( Σ ( c : (C x))
           , ( f x =_{C x} c)))
-      ( prod-eq-pair-dhomotopy A C f)
+      ( components-dhomotopy A C f)
   :=
     ( ( \ G →
         ( \ x → first (G x) , \ x → second (G x)))
     , \ x → refl)
 
-#def is-retract-prod-eq-pair-dhomotopy
+#def is-retract-components-dhomotopy
   ( A : U)
   ( C : A → U)
   ( f : (x : A) → C x)
@@ -738,8 +745,8 @@ contractible.
         → ( Σ ( c : (C x))
           , ( f x =_{C x} c)))
   :=
-    ( prod-eq-pair-dhomotopy A C f
-    , has-retraction-prod-eq-pair-dhomotopy A C f)
+    ( components-dhomotopy A C f
+    , has-retraction-components-dhomotopy A C f)
 
 #def WeirdFunExt
   : U
@@ -761,12 +768,17 @@ contractible.
         ( ( x : A)
           → ( Σ ( c : (C x))
               , ( f x =_{C x} c)))
-        ( is-retract-prod-eq-pair-dhomotopy A C f)
+        ( is-retract-components-dhomotopy A C f)
         ( weakfunext
           ( A)
           ( \ x → Σ (c : (C x)) , (f x =_{C x} c))
           ( \ x → is-contr-based-paths (C x) (f x)))
+```
 
+We now use the fundamental theorem of identity types to go from the version for
+a fixed f to the total `#!rzk FunExt` axiom.
+
+```rzk
 #def funext-weirdfunext
   ( weirdfunext : WeirdFunExt)
   : FunExt
@@ -787,10 +799,10 @@ contractible.
     funext-weirdfunext (weirdfunext-weakfunext weakfunext)
 ```
 
-The proof of `weakfunext-funext` from `06-contractible.rzk` works with a weaker
-version of function extensionality only requiring the map in the converse
-direction. We can then prove a cycle of implications between FunExt, NaiveFunExt
-and WeakFunExt.
+The proof of `weakfunext-funext` from `06-contractible.rzk` works with a version
+of function extensionality only requiring the map in the converse direction. We
+can then prove a cycle of implications between `#!rzk FunExt`,
+`#!rzk NaiveFunExt` and `#!rzk WeakFunExt`.
 
 ```rzk
 #def NaiveFunExt

@@ -469,10 +469,11 @@ Segal, then so is `Σ A, C`.
 
 ## Dependent composition
 
-We can compose dependent arrows given a covariant type family.
+In a covariant family over a Segal type, we will define dependent composition of
+arrows. We first apply the result that the total type is Segal as follows.
 
-```rzk title="RS17, Remark 8.11"
-#def is-contr-ext-is-covariant uses (extext)
+```rzk
+#def is-contr-horn-ext-is-covariant-family-is-segal-base uses (extext)
   ( A : U)
   ( is-segal-A : is-segal A)
   ( C : A → U)
@@ -501,7 +502,7 @@ We can compose dependent arrows given a covariant type family.
           A C is-covariant-C is-segal-A)
         ( \ t → (a t , c t)))
 
-#def equiv-ext-is-segal-base
+#def equiv-comp-horn-ext-is-segal-base
   ( A : U)
   ( is-segal-A : is-segal A)
   ( C : A → U)
@@ -521,7 +522,7 @@ We can compose dependent arrows given a covariant type family.
       ( witness-comp-is-segal A is-segal-A (a (0₂ , 0₂)) (a (1₂ , 0₂))
           ( a (1₂ , 1₂)) (\ s → a (s , 0₂)) (\ s → a (1₂ , s)))
 
-#def is-contr-horn-ext-is-covariant uses (extext)
+#def is-contr-comp-horn-ext-is-covariant-family-is-segal-base uses (extext)
   ( A : U)
   ( is-segal-A : is-segal A)
   ( C : A → U)
@@ -539,8 +540,9 @@ We can compose dependent arrows given a covariant type family.
       ( ( t : Δ²)
         → C (witness-comp-is-segal A is-segal-A (a (0₂ , 0₂)) (a (1₂ , 0₂))
             ( a (1₂ , 1₂)) (\ s → a (s , 0₂)) (\ s → a (1₂ , s)) t) [Λ t ↦ c t])
-      ( equiv-ext-is-segal-base A is-segal-A C a c)
-      ( is-contr-ext-is-covariant A is-segal-A C is-covariant-C a c)
+      ( equiv-comp-horn-ext-is-segal-base A is-segal-A C a c)
+      ( is-contr-horn-ext-is-covariant-family-is-segal-base
+        A is-segal-A C is-covariant-C a c)
 
 #def dhorn
   ( A : U)
@@ -560,7 +562,7 @@ We can compose dependent arrows given a covariant type family.
         ( s ≡ 0₂ ↦ ff t
         , t ≡ 1₂ ↦ gg s)
 
-#def compositions-are-dhorn-fillings
+#def dcompositions-are-dhorn-fillings
   ( A : U)
   ( x y z : A)
   ( f : hom A x y)
@@ -583,8 +585,13 @@ We can compose dependent arrows given a covariant type family.
         , \ (hh , H) → refl)
       , ( \ k → (\ t → k (t , t) , \ (t , s) → k (t , s))
         , \ (hh , H) → refl)))
+```
 
-#def is-contr-ext-dhom-is-covariant uses (extext)
+We now prove contractibility of a type that will be used to define dependent
+composition.
+
+```rzk title="RS17, Remark 8.11"
+#def is-contr-dhom2-comp-is-covariant-family-is-segal-base uses (extext)
   ( A : U)
   ( is-segal-A : is-segal A)
   ( C : A → U)
@@ -608,15 +615,19 @@ We can compose dependent arrows given a covariant type family.
           ( witness-comp-is-segal A is-segal-A x y z f g) C u v w ff gg hh)
       ( ( t : Δ²) → C ((witness-comp-is-segal A is-segal-A x y z f g) t)
                     [Λ t ↦ dhorn A x y z f g C u v w ff gg t])
-      ( compositions-are-dhorn-fillings A x y z f g
+      ( dcompositions-are-dhorn-fillings A x y z f g
         ( comp-is-segal A is-segal-A x y z f g)
         ( witness-comp-is-segal A is-segal-A x y z f g)
           C u v w ff gg)
-      ( is-contr-horn-ext-is-covariant A is-segal-A C is-covariant-C
+      ( is-contr-comp-horn-ext-is-covariant-family-is-segal-base
+        ( A)
+        ( is-segal-A)
+        ( C)
+        ( is-covariant-C)
         ( horn A x y z f g)
         ( dhorn A x y z f g C u v w ff gg))
 
-#def dcomp uses (extext)
+#def dcomp-is-covariant-family-is-segal-base uses (extext)
   ( A : U)
   ( is-segal-A : is-segal A)
   ( C : A → U)
@@ -631,11 +642,74 @@ We can compose dependent arrows given a covariant type family.
   ( gg : dhom A y z g C v w)
   : dhom A x z (comp-is-segal A is-segal-A x y z f g) C u w
   :=
-    \ t →
-      ( second
-        ( first
-          ( is-contr-ext-dhom-is-covariant
-                A is-segal-A C is-covariant-C x y z f g u v w ff gg))) (t , t)
+    ( first
+      ( first
+        ( is-contr-dhom2-comp-is-covariant-family-is-segal-base
+          A is-segal-A C is-covariant-C x y z f g u v w ff gg)))
+
+#def witness-dcomp-is-covariant-family-is-segal-base uses (extext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( C : A → U)
+  ( is-covariant-C : is-covariant A C)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : dhom2 A x y z f g (comp-is-segal A is-segal-A x y z f g)
+      ( witness-comp-is-segal A is-segal-A x y z f g) C u v w ff gg
+        ( dcomp-is-covariant-family-is-segal-base
+          A is-segal-A C is-covariant-C x y z f g u v w ff gg)
+  :=
+    ( second
+      ( first
+        ( is-contr-dhom2-comp-is-covariant-family-is-segal-base
+          A is-segal-A C is-covariant-C x y z f g u v w ff gg)))
+```
+
+Dependent composition is unique.
+
+```rzk
+#def uniqueness-dcomp-is-covariant-family-is-segal-base uses (extext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( C : A → U)
+  ( is-covariant-C : is-covariant A C)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  ( hh : dhom A x z (comp-is-segal A is-segal-A x y z f g) C u w)
+  ( H : dhom2 A x y z f g (comp-is-segal A is-segal-A x y z f g)
+        ( witness-comp-is-segal A is-segal-A x y z f g) C u v w ff gg hh)
+  : ( dcomp-is-covariant-family-is-segal-base
+      A is-segal-A C is-covariant-C x y z f g u v w ff gg) = hh
+  :=
+    first-path-Σ
+      ( dhom A x z (comp-is-segal A is-segal-A x y z f g) C u w)
+      ( \ hh →
+          dhom2 A x y z f g (comp-is-segal A is-segal-A x y z f g)
+          ( witness-comp-is-segal A is-segal-A x y z f g) C u v w ff gg hh)
+      ( ( dcomp-is-covariant-family-is-segal-base
+          A is-segal-A C is-covariant-C x y z f g u v w ff gg)
+        , ( witness-dcomp-is-covariant-family-is-segal-base
+            A is-segal-A C is-covariant-C x y z f g u v w ff gg))
+      ( hh , H)
+      ( homotopy-contraction
+        ( ( Σ ( hh : dhom A x z (comp-is-segal A is-segal-A x y z f g) C u w)
+        , dhom2 A x y z f g (comp-is-segal A is-segal-A x y z f g)
+          ( witness-comp-is-segal A is-segal-A x y z f g) C u v w ff gg hh))
+        ( is-contr-dhom2-comp-is-covariant-family-is-segal-base
+          A is-segal-A C is-covariant-C x y z f g u v w ff gg)
+        ( hh , H))
 ```
 
 ## Dependent composition try
