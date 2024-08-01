@@ -176,19 +176,52 @@ We use the conventions from the definition of `#!rzk hom3` from
 A type is 2-Segal if and only if its based hom-types are Segal.
 
 ```rzk
--- #def test45
+#def hom-coslice-hom2
+  ( A : U)
+  ( w x y : A)
+  ( f : hom A w x)
+  ( gf : hom A w y)
+  : ( Σ ( g : hom A x y) , (hom2 A w x y f g gf))
+  → hom (coslice A w) (x , f) (y , gf)
+  :=
+    \ (g , α₃) t →
+      ( g t
+      , \ s →
+          recOR
+            ( s ≤ t ↦ gf s
+            , t ≤ s ↦ α₃ (s , t)))
+
+-- #def cofibration-union-432
 --   ( A : U)
 --   ( w x y : A)
 --   ( f : hom A w x)
 --   ( gf : hom A w y)
---   ( g : hom A x y)
---   ( α₃ : hom2 A w x y f g gf)
---   : hom (coslice A w) (x , f) (y , gf)
+--   : U
 --   :=
---     U
+--     cofibration-union
+--       ( 2 × 2)
+--       ( \ (s , t) → s ≤ t)
+--       ( \ ( s , t) → t ≤ s)
+--       ()
+--       ()
+
+-- #def hom2-hom-coslice
+--   ( A : U)
+--   ( w x y : A)
+--   ( f : hom A w x)
+--   ( gf : hom A w y)
+--   : hom (coslice A w) (x , f) (y , gf)
+--   → ( Σ ( g : hom A x y) , (hom2 A w x y f g gf))
+--   :=
+--     \ G →
+--       ( \ t → first (G t)
+--       , \ (t , s) → (second (G s)) t)
 ```
 
-A type is 2-Segal iff it is local with respect to 2-Segal horn inclusions.
+### Characterizing 2-Segal types
+
+A type is 2-Segal if and only if it is local with respect to both 2-Segal horn
+inclusions.
 
 ```rzk
 #def is-local-2-segal-horn-inclusion
@@ -576,6 +609,266 @@ A type is 2-Segal iff it is local with respect to 2-Segal horn inclusions.
   :=
     ( is-local-2-segal-horn-inclusion-is-2-segal₍₀₂₎ A (first (is-2-segal-A))
     , is-local-2-segal-horn-inclusion-is-2-segal₍₁₃₎ A (second (is-2-segal-A)))
+```
+
+The converse direction: A type that is local with respect to the 2-Segal horn
+inclusions in 2-Segal.
+
+```rzk
+#def is-2-segal-is-local-2-segal-horn-inclusion₍₀₂₎
+  ( A : U)
+  ( is-local-A : is-local-type (2 × 2 × 2) Δ³ Λ³₍₀₂₎ A)
+  : is-2-segal₍₀₂₎ A
+  :=
+    \ w x y z f gf hgf g h α₃ α₁ →
+      contractible-fibers-is-equiv-projection
+        ( Λ³₍₀₂₎ → A)
+        ( \ k →
+          ( Σ ( hg : hom A (k ((1₂ , 0₂) , 0₂)) (k ((1₂ , 1₂) , 1₂)))
+            , ( Σ ( α₂ : hom2
+                          ( A)
+                          ( k ((0₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 1₂) , 1₂))
+                          ( \ t → k ((t , 0₂) , 0₂))
+                          ( hg)
+                          ( \ t → k ((t , t) , t)))
+                , ( Σ ( α₀ : hom2
+                              ( A)
+                              ( k ((1₂ , 0₂) , 0₂))
+                              ( k ((1₂ , 1₂) , 0₂))
+                              ( k ((1₂ , 1₂) , 1₂))
+                              ( \ t → k ((1₂ , t) , 0₂))
+                              ( \ t → k ((1₂ , 1₂) , t))
+                              ( hg))
+                    , ( hom3
+                          ( A)
+                          ( k ((0₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 1₂) , 0₂))
+                          ( k ((1₂ , 1₂) , 1₂))
+                          ( \ t → k ((t , 0₂) , 0₂))
+                          ( \ t → k ((t , t) , 0₂))
+                          ( \ t → k ((t , t) , t))
+                          ( \ t → k ((1₂ , t) , 0₂))
+                          ( hg)
+                          ( \ t → k ((1₂ , 1₂) , t))
+                          ( \ (t , s) → k ((t , s) , 0₂))
+                          ( α₂)
+                          ( \ (t , s) → k ((t , t) , s))
+                          ( α₀))))))
+        ( second
+          ( equiv-comp
+            ( Σ ( k : Λ³₍₀₂₎ → A)
+              , ( Σ ( hg : hom A (k ((1₂ , 0₂) , 0₂)) (k ((1₂ , 1₂) , 1₂)))
+                  , ( Σ ( α₂ : hom2
+                                ( A)
+                                ( k ((0₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 1₂) , 1₂))
+                                ( \ t → k ((t , 0₂) , 0₂))
+                                ( hg)
+                                ( \ t → k ((t , t) , t)))
+                      , ( Σ ( α₀ : hom2
+                                    ( A)
+                                    ( k ((1₂ , 0₂) , 0₂))
+                                    ( k ((1₂ , 1₂) , 0₂))
+                                    ( k ((1₂ , 1₂) , 1₂))
+                                    ( \ t → k ((1₂ , t) , 0₂))
+                                    ( \ t → k ((1₂ , 1₂) , t))
+                                    ( hg))
+                          , ( hom3
+                                ( A)
+                                ( k ((0₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 1₂) , 0₂))
+                                ( k ((1₂ , 1₂) , 1₂))
+                                ( \ t → k ((t , 0₂) , 0₂))
+                                ( \ t → k ((t , t) , 0₂))
+                                ( \ t → k ((t , t) , t))
+                                ( \ t → k ((1₂ , t) , 0₂))
+                                ( hg)
+                                ( \ t → k ((1₂ , 1₂) , t))
+                                ( \ (t , s) → k ((t , s) , 0₂))
+                                ( α₂)
+                                ( \ (t , s) → k ((t , t) , s))
+                                ( α₀))))))
+            ( Δ³ → A)
+            ( Λ³₍₀₂₎ → A)
+            ( inv-equiv
+              ( Δ³ → A)
+              ( Σ ( k : Λ³₍₀₂₎ → A)
+                , ( Σ ( hg : hom A (k ((1₂ , 0₂) , 0₂)) (k ((1₂ , 1₂) , 1₂)))
+                    , ( Σ ( α₂ : hom2
+                                  ( A)
+                                  ( k ((0₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 1₂) , 1₂))
+                                  ( \ t → k ((t , 0₂) , 0₂))
+                                  ( hg)
+                                  ( \ t → k ((t , t) , t)))
+                        , ( Σ ( α₀ : hom2
+                                      ( A)
+                                      ( k ((1₂ , 0₂) , 0₂))
+                                      ( k ((1₂ , 1₂) , 0₂))
+                                      ( k ((1₂ , 1₂) , 1₂))
+                                      ( \ t → k ((1₂ , t) , 0₂))
+                                      ( \ t → k ((1₂ , 1₂) , t))
+                                      ( hg))
+                            , ( hom3
+                                  ( A)
+                                  ( k ((0₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 1₂) , 0₂))
+                                  ( k ((1₂ , 1₂) , 1₂))
+                                  ( \ t → k ((t , 0₂) , 0₂))
+                                  ( \ t → k ((t , t) , 0₂))
+                                  ( \ t → k ((t , t) , t))
+                                  ( \ t → k ((1₂ , t) , 0₂))
+                                  ( hg)
+                                  ( \ t → k ((1₂ , 1₂) , t))
+                                  ( \ (t , s) → k ((t , s) , 0₂))
+                                  ( α₂)
+                                  ( \ (t , s) → k ((t , t) , s))
+                                  ( α₀))))))
+              ( equiv-2-segal-horn-restriction₍₀₂₎ A))
+            ( \ f t → f t , is-local-A)))
+        ( 3horn₍₀₂₎ A w x y z f gf hgf g h α₃ α₁)
+
+#def is-2-segal-is-local-2-segal-horn-inclusion₍₁₃₎
+  ( A : U)
+  ( is-local-A : is-local-type (2 × 2 × 2) Δ³ Λ³₍₁₃₎ A)
+  : is-2-segal₍₁₃₎ A
+  :=
+    \ w x y z f hgf g hg h α₂ α₀ →
+      contractible-fibers-is-equiv-projection
+        ( Λ³₍₁₃₎ → A)
+        ( \ k →
+          ( Σ ( gf : hom A (k ((0₂ , 0₂) , 0₂)) (k ((1₂ , 1₂) , 0₂)))
+            , ( Σ ( α₃ : hom2
+                          ( A)
+                          ( k ((0₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 1₂) , 0₂))
+                          ( \ t → k ((t , 0₂) , 0₂))
+                          ( \ t → k ((1₂ , t) , 0₂))
+                          ( gf))
+                , ( Σ ( α₁ : hom2
+                              ( A)
+                              ( k ((0₂ , 0₂) , 0₂))
+                              ( k ((1₂ , 1₂) , 0₂))
+                              ( k ((1₂ , 1₂) , 1₂))
+                              ( gf)
+                              ( \ t → k ((1₂ , 1₂) , t))
+                              ( \ t → k ((t , t) , t)))
+                    , ( hom3
+                          ( A)
+                          ( k ((0₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 0₂) , 0₂))
+                          ( k ((1₂ , 1₂) , 0₂))
+                          ( k ((1₂ , 1₂) , 1₂))
+                          ( \ t → k ((t , 0₂) , 0₂))
+                          ( gf)
+                          ( \ t → k ((t , t) , t))
+                          ( \ t → k ((1₂ , t) , 0₂))
+                          ( \ t → k ((1₂ , t) , t))
+                          ( \ t → k ((1₂ , 1₂) , t))
+                          ( α₃)
+                          ( \ (t , s) → k ((t , s) , s))
+                          ( α₁)
+                          ( \ (t , s) → k ((1₂ , t) , s)))))))
+        ( second
+          ( equiv-comp
+            ( Σ ( k : Λ³₍₁₃₎ → A)
+              , ( Σ ( gf : hom A (k ((0₂ , 0₂) , 0₂)) (k ((1₂ , 1₂) , 0₂)))
+                  , ( Σ ( α₃ : hom2
+                                ( A)
+                                ( k ((0₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 1₂) , 0₂))
+                                ( \ t → k ((t , 0₂) , 0₂))
+                                ( \ t → k ((1₂ , t) , 0₂))
+                                ( gf))
+                      , ( Σ ( α₁ : hom2
+                                    ( A)
+                                    ( k ((0₂ , 0₂) , 0₂))
+                                    ( k ((1₂ , 1₂) , 0₂))
+                                    ( k ((1₂ , 1₂) , 1₂))
+                                    ( gf)
+                                    ( \ t → k ((1₂ , 1₂) , t))
+                                    ( \ t → k ((t , t) , t)))
+                          , ( hom3
+                                ( A)
+                                ( k ((0₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 0₂) , 0₂))
+                                ( k ((1₂ , 1₂) , 0₂))
+                                ( k ((1₂ , 1₂) , 1₂))
+                                ( \ t → k ((t , 0₂) , 0₂))
+                                ( gf)
+                                ( \ t → k ((t , t) , t))
+                                ( \ t → k ((1₂ , t) , 0₂))
+                                ( \ t → k ((1₂ , t) , t))
+                                ( \ t → k ((1₂ , 1₂) , t))
+                                ( α₃)
+                                ( \ (t , s) → k ((t , s) , s))
+                                ( α₁)
+                                ( \ (t , s) → k ((1₂ , t) , s)))))))
+            ( Δ³ → A)
+            ( Λ³₍₁₃₎ → A)
+            ( inv-equiv
+              ( Δ³ → A)
+              ( Σ ( k : Λ³₍₁₃₎ → A)
+                , ( Σ ( gf : hom A (k ((0₂ , 0₂) , 0₂)) (k ((1₂ , 1₂) , 0₂)))
+                    , ( Σ ( α₃ : hom2
+                                  ( A)
+                                  ( k ((0₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 1₂) , 0₂))
+                                  ( \ t → k ((t , 0₂) , 0₂))
+                                  ( \ t → k ((1₂ , t) , 0₂))
+                                  ( gf))
+                        , ( Σ ( α₁ : hom2
+                                      ( A)
+                                      ( k ((0₂ , 0₂) , 0₂))
+                                      ( k ((1₂ , 1₂) , 0₂))
+                                      ( k ((1₂ , 1₂) , 1₂))
+                                      ( gf)
+                                      ( \ t → k ((1₂ , 1₂) , t))
+                                      ( \ t → k ((t , t) , t)))
+                            , ( hom3
+                                  ( A)
+                                  ( k ((0₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 0₂) , 0₂))
+                                  ( k ((1₂ , 1₂) , 0₂))
+                                  ( k ((1₂ , 1₂) , 1₂))
+                                  ( \ t → k ((t , 0₂) , 0₂))
+                                  ( gf)
+                                  ( \ t → k ((t , t) , t))
+                                  ( \ t → k ((1₂ , t) , 0₂))
+                                  ( \ t → k ((1₂ , t) , t))
+                                  ( \ t → k ((1₂ , 1₂) , t))
+                                  ( α₃)
+                                  ( \ (t , s) → k ((t , s) , s))
+                                  ( α₁)
+                                  ( \ (t , s) → k ((1₂ , t) , s)))))))
+              ( equiv-2-segal-horn-restriction₍₁₃₎ A))
+            ( \ f t → f t , is-local-A)))
+        ( 3horn₍₁₃₎ A w x y z f hgf g hg h α₂ α₀)
+
+#def is-2-segal-is-local-2-segal-horn-inclusion
+  ( A : U)
+  ( is-local-A : is-local-2-segal-horn-inclusion A)
+  : is-2-segal A
+  :=
+    ( is-2-segal-is-local-2-segal-horn-inclusion₍₀₂₎ A (first (is-local-A))
+    , is-2-segal-is-local-2-segal-horn-inclusion₍₁₃₎ A (second (is-local-A)))
+
+#def is-2-segal-iff-is-local-2-segal-horn-inclusion
+  ( A : U)
+  : iff (is-2-segal A) (is-local-2-segal-horn-inclusion A)
+  :=
+    ( is-local-2-segal-horn-inclusion-is-2-segal A
+    , is-2-segal-is-local-2-segal-horn-inclusion A)
 ```
 
 The proof of `is-local-horn-inclusion-function-type` generalizes to types being
