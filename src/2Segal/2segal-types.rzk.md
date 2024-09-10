@@ -173,7 +173,7 @@ We use the conventions from the definition of `#!rzk hom3` from
             , \ H → refl))))
 ```
 
-A type is 2-Segal if and only if its based hom-types are Segal.
+A type is 2-Segal if and only if its based hom-types are Segal (hopefully).
 
 ```rzk
 #def hom-coslice-hom2
