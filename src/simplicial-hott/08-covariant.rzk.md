@@ -712,6 +712,482 @@ Dependent composition is unique.
         ( hh , H))
 ```
 
+## Dependent composition try
+
+```rzk
+#def dhom-hom-total-type
+  ( A : U)
+  ( x y : A)
+  ( f : hom A x y)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( ff : dhom A x y f C u v)
+  : hom (total-type A C) (x , u) (y , v)
+  := \ t → (f t , ff t)
+
+#def dhom-hom-total-type-proection
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( x y : A)
+  ( f : hom A x y)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  : ( Σ ( k : hom (total-type A C) (x , u) (y , v))
+    , ( ( \ t → first (k t)) =_{hom A x y} f))
+    → dhom A x y f C u v
+  := \ (k , p) →
+       \ t →
+         ( transport
+           ( hom A x y)
+           ( \ g → dhom A x y g C u v)
+           ( \ t → first (k t)) f p (\ t → second (k t)) t)
+
+#def hom-total-type-projection-dhom
+  ( A : U)
+  ( x y : A)
+  ( f : hom A x y)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  : dhom A x y f C u v
+  → ( Σ ( k : hom (total-type A C) (x , u) (y , v))
+    , ( ( \ t → first (k t)) =_{hom A x y} f))
+  :=
+    \ ff →
+    ( dhom-hom-total-type A x y f C u v ff
+    , refl)
+```
+
+```rzk
+#def equiv-hom-total-type-dhom-choice
+  ( A : U)
+  ( x y : A)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  : Equiv
+      ( hom (total-type A C) (x , u) (y , v))
+      ( Σ ( f : hom A x y)
+        , ( dhom A x y f C u v))
+  :=
+    axiom-choice
+      ( 2)
+      ( Δ¹)
+      ( ∂Δ¹)
+      ( \ t → A)
+      ( \ t → \ x → C x)
+      ( \ t →
+        recOR
+          ( t ≡ 0₂ ↦ x
+          , t ≡ 1₂ ↦ y))
+      ( \ t →
+        recOR
+          ( t ≡ 0₂ ↦ u
+          , t ≡ 1₂ ↦ v))
+```
+
+```rzk
+#def dhom2-to-hom2-total-type
+  ( A : U)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : ( Σ ( h : hom A x z)
+      , Σ ( α : hom2 A x y z f g h)
+        , ( Σ ( hh : dhom A x z h C u w)
+          , dhom2 A x y z f g h α C u v w ff gg hh))
+    → ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+        , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+            ( dhom-hom-total-type A x y f C u v ff)
+            ( dhom-hom-total-type A y z g C v w gg) k))
+  :=
+    \ (h , (α , (hh , k))) →
+      ( dhom-hom-total-type A x z h C u w hh , \ t → (α t , k t))
+```
+
+```rzk
+#def hom2-total-type-to-dhom2
+  ( A : U)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+      , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+          ( dhom-hom-total-type A x y f C u v ff)
+          ( dhom-hom-total-type A y z g C v w gg) k))
+    → Σ ( h : hom A x z)
+      , Σ ( α : hom2 A x y z f g h)
+        , ( Σ ( hh : dhom A x z h C u w)
+          , dhom2 A x y z f g h α C u v w ff gg hh)
+  :=
+    \ (k , kk) →
+      ( \ t → first (k t)
+      , ( \ t → first (kk t)
+        , ( \ t → second (kk (t , t)) , \ t → second (kk t))))
+```
+
+```rzk
+#def equiv-hom2-total-type-dhom2
+  ( A : U)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : Equiv
+      ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+      , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+          ( dhom-hom-total-type A x y f C u v ff)
+          ( dhom-hom-total-type A y z g C v w gg) k))
+      ( Σ ( h : hom A x z)
+        , Σ ( α : hom2 A x y z f g h)
+          , ( Σ ( hh : dhom A x z h C u w)
+            , dhom2 A x y z f g h α C u v w ff gg hh))
+  :=
+    ( hom2-total-type-to-dhom2 A x y z f g C u v w ff gg
+      , ( ( dhom2-to-hom2-total-type A x y z f g C u v w ff gg , \ t → refl)
+        , ( dhom2-to-hom2-total-type A x y z f g C u v w ff gg , \ t → refl)))
+```
+
+```rzk
+#def comp-total-type uses (extext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( is-covariant-C : is-covariant A C)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : hom (total-type A C) (x , u) (z , w)
+  :=
+        -- \ t → (witness-comp-is-segal
+        --   ( total-type A C)
+        --   ( is-segal-total-type-covariant-family-is-segal-base
+        --     A C is-covariant-C is-segal-A)
+        --   ( x , u) (y , v) (z , w)
+        --   ( dhom-to-hom-total-type A x y f C u v ff)
+        --   ( dhom-to-hom-total-type A y z g C v w gg) (t , t))
+    comp-is-segal
+      ( total-type A C)
+      ( is-segal-total-type-covariant-family-is-segal-base
+        A C is-covariant-C is-segal-A)
+      ( x , u) (y , v) (z , w)
+      ( dhom-hom-total-type A x y f C u v ff)
+      ( dhom-hom-total-type A y z g C v w gg)
+```
+
+```rzk
+#def proj-comp-total-type uses (extext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( x y z : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( C : A → U)
+  ( is-covariant-C : is-covariant A C)
+  ( u : C x)
+  ( v : C y)
+  ( w : C z)
+  ( ff : dhom A x y f C u v)
+  ( gg : dhom A y z g C v w)
+  : hom A x z
+  :=
+    \ t → first
+      ( comp-total-type A is-segal-A x y z f g C is-covariant-C u v w ff gg t)
+```
+
+```rzk
+-- #def is-comp-proj-comp-total-type uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   :
+--     hom2 (total-type A C) (x , u) (y , v) (z , w)
+--       ( dhom-to-hom-total-type A x y f C u v ff)
+--       ( dhom-to-hom-total-type A y z g C v w gg)
+--       ( comp-total-type A is-segal-A x y z f g C is-covariant-C u v w ff gg)
+--   :=
+--       witness-comp-is-segal
+--         ( total-type A C)
+--         ( is-segal-total-type-covariant-family-is-segal-base
+--           A C is-covariant-C is-segal-A)
+--         ( x , u) (y , v) (z , w)
+--         ( dhom-to-hom-total-type A x y f C u v ff)
+--         ( dhom-to-hom-total-type A y z g C v w gg)
+```
+
+```rzk
+-- #set-option "max-whnf-depth" = "20"
+-- #def is-comp-proj-comp-total-type uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   :
+--     hom2 A x y z f g
+--       ( proj-comp-total-type A is-segal-A x y z f g C is-covariant-C u v w ff gg)
+--   :=
+--       \ (t₁ , t₂) →
+--       ( first (witness-comp-is-segal
+--         ( total-type A C)
+--         ( is-segal-total-type-covariant-family-is-segal-base
+--           A C is-covariant-C is-segal-A)
+--         ( x , u) (y , v) (z , w)
+--         ( dhom-to-hom-total-type A x y f C u v ff)
+--         ( dhom-to-hom-total-type A y z g C v w gg) (t₁ , t₂)))
+```
+
+```rzk
+-- #def is-comp-proj-comp-total-type uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   : hom2 A x y z f g
+--       ( \ t → first
+--       ( comp-is-segal
+--       ( total-type A C)
+--       ( is-segal-total-type-covariant-family-is-segal-base
+--         A C is-covariant-C is-segal-A)
+--       ( x , u) (y , v) (z , w)
+--       ( \ r → (f r , ff r))
+--       ( \ s → (g s , gg s)) t))
+--   :=
+--       \ (t₁ , t₂) →
+--       ( first (witness-comp-is-segal
+--         ( total-type A C)
+--         ( is-segal-total-type-covariant-family-is-segal-base
+--           A C is-covariant-C is-segal-A)
+--         ( x , u) (y , v) (z , w)
+--         ( \ r → (f r , ff r))
+--         ( \ s → (g s , gg s)) (t₁ , t₂)))
+
+-- The thing above but unfolded, also crashes
+```
+
+```rzk
+-- #def is-comp-proj-comp-total-type uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   : Σ ( h : hom A x z) , hom2 A x y z f g h
+--   := U
+     -- ( \ t → first (comp-is-segal
+      -- ( total-type A C)
+      -- ( is-segal-total-type-covariant-family-is-segal-base
+      --   A C is-covariant-C is-segal-A)
+      -- ( x , u) (y , v) (z , w)
+      -- ( dhom-to-hom-total-type A x y f C u v ff)
+      -- ( dhom-to-hom-total-type A y z g C v w gg) t)
+    -- , \ t → first (witness-comp-is-segal
+    --   ( total-type A C)
+    --   ( is-segal-total-type-covariant-family-is-segal-base
+    --     A C is-covariant-C is-segal-A)
+    --   ( x , u) (y , v) (z , w)
+    --   ( dhom-to-hom-total-type A x y f C u v ff)
+    --   ( dhom-to-hom-total-type A y z g C v w gg) t)
+```
+
+```rzk
+-- #def eq-comp-total-type uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   : ( comp-is-segal A is-segal-A x y z f g)
+--     =_{hom A x z}
+--       ( proj-comp-total-type A is-segal-A x y z f g C is-covariant-C u v w ff gg)
+--   := U
+-- Strategy: Show in the previous statement that this is indeed a composition
+-- and then just use uniqueness-comp-is-segal
+```
+
+```rzk
+-- #def dhom-dhom-to-dhom2
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( h : hom A x z)
+--   ( α : hom2 A x y z f g h)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   ( hh : dhom A x z h C u w)
+--   : ( Σ ( k : hom (total-type A C) (x , u) (z , w))
+--     , ( hom2 (total-type A C) (x , u) (y , v) (z , w)
+--         ( \ r → (f r , ff r)) (\ s → (g s , gg s)) k))
+```
+
+```rzk title="RS17, Remark 8.11"
+--This probably doesn't work, same "being over comp f g" problems as the previous approach.
+-- #def dcomp uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   : dhom A x z (comp-is-segal A is-segal-A x y z f g) C u w
+--   :=
+--     dhom2-to-dhom A x y z f g (comp-is-segal A is-segal-A x y z f g)
+--       ( witness-comp-is-segal A is-segal-A x y z f g) C u v w ff gg
+      -- This crashed when I added the same thing as below, but with a first instead of a second in front
+      -- ( second (second (second (hom2-total-type-to-dhom2
+      --     A is-segal-A x y z f g C is-covariant-C u v w ff gg
+      --     ( comp-is-segal
+      --     ( total-type A C)
+      --     ( is-segal-total-type-covariant-family-is-segal-base
+      --       A C is-covariant-C is-segal-A)
+      --     ( x , u) (y , v) (z , w)
+      --     ( dhom-to-hom-total-type A x y f C u v ff)
+      --     ( dhom-to-hom-total-type A y z g C v w gg)
+      --       , witness-comp-is-segal
+      --       ( total-type A C)
+      --       ( is-segal-total-type-covariant-family-is-segal-base
+      --         A C is-covariant-C is-segal-A)
+      --       ( x , u) (y , v) (z , w)
+      --       ( dhom-to-hom-total-type A x y f C u v ff)
+      --       ( dhom-to-hom-total-type A y z g C v w gg))))))
+```
+
+```rzk
+-- #def test uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( h : hom A x z)
+--   ( α : hom2 A x y z f g h)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   : is-contr (Σ (hh : dhom A x z h C u w)
+--     , dhom2 A x y z f g h α C u v w ff gg hh)
+--   :=
+
+
+
+-- #def total-hom-to-dhom
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y : A)
+--   ( C : A → U)
+--   ( f : hom A x y)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( k : hom (total-type A C) (x , u) (y , v))
+--   : dhom A x y f C u v
+--   := \ t → second (k t)
+  --[t ≡ 0₂ ↦ x , t ≡ 1₂ ↦ y]
+
+-- #def dcomp uses (extext)
+--   ( A : U)
+--   ( is-segal-A : is-segal A)
+--   ( x y z : A)
+--   ( f : hom A x y)
+--   ( g : hom A y z)
+--   ( C : A → U)
+--   ( is-covariant-C : is-covariant A C)
+--   ( u : C x)
+--   ( v : C y)
+--   ( w : C z)
+--   ( ff : dhom A x y f C u v)
+--   ( gg : dhom A y z g C v w)
+--   : dhom A x z (comp-is-segal A is-segal-A x y z f g) C u w
+--   :=
+--     \ t → second
+--           ( comp-is-segal
+--           ( total-type A C)
+--           ( is-segal-total-type-covariant-family-is-segal-base
+--             A C is-covariant-C is-segal-A)
+--           ( x , u) (y , v) (z , w)
+--           ( \ r → (f r , ff r)) (\ s → (g s , gg s)) t)
+-- This crashed.
+```
+
 ## Covariant lifts, transport, and uniqueness
 
 In a covariant family C over a base type A , a term u : C x may be transported
