@@ -216,8 +216,6 @@ A type is 2-Segal if and only if its based hom-types are Segal (hopefully).
 --     \ G →
 --       ( \ t → first (G t)
 --       , \ (t , s) → (second (G s)) t)
-
---git
 ```
 
 
