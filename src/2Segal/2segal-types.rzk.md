@@ -218,7 +218,6 @@ A type is 2-Segal if and only if its based hom-types are Segal (hopefully).
 --       , \ (t , s) → (second (G s)) t)
 ```
 
-
 ### Characterizing 2-Segal types
 
 A type is 2-Segal if and only if it is local with respect to both 2-Segal horn
