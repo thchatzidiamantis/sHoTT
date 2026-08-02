@@ -12,14 +12,14 @@ This is a literate `rzk` file:
 
 - `hott/*` - We require various prerequisites from homotopy type theory, for
   instance the notion of contractible types.
-- `03-simplicial-type-theory.rzk.md` — We rely on definitions of simplicies and
+- `02-simplicial-type-theory.rzk.md` — We rely on definitions of simplices and
   their subshapes.
-- `04-extension-types.rzk.md` — We use Theorem 4.1, an equivalence between
+- `03-extension-types.rzk.md` — We use Theorem 4.1, an equivalence between
   lifts.
 - `05-segal-types.rzk.md` - We make use of the notion of Segal types and their
   structures.
-- `06-contractible.rzk.md` - We make use of weak function extensionality. ! Some
-  of the definitions in this file rely on extension extensionality:
+- `hott/06-contractible.rzk.md` - We make use of weak function extensionality. !
+  Some of the definitions in this file rely on extension extensionality:
 
 ```rzk
 #assume extext : ExtExt
@@ -2286,12 +2286,13 @@ commuting with the contravariant lifts.
 
 ## Discrete fibers
 
-The fibers of a covariant fibration over a Segal type are discrete types.
+The fibers of a covariant fibration are discrete types. Note the original
+statement asserted that the base type must be Segal, but this hypothesis is
+unnecessary.
 
 ```rzk title="RS17, Proposition 8.18"
-#def is-discrete-is-covariant-segal
+#def is-discrete-is-covariant
   ( A : U)
-  ( is-segal-A : is-segal A)
   ( C : A → U)
   ( is-cov-C : is-covariant A C)
   ( x : A)
@@ -2326,9 +2327,8 @@ are discrete.
   ( x y : A)
   : is-discrete (hom A x y)
   :=
-    is-discrete-is-covariant-segal
+    is-discrete-is-covariant
       ( A)
-      ( is-segal-A)
       ( hom A x)
       ( is-covariant-representable-is-segal A is-segal-A x)
       ( y)

@@ -12,8 +12,22 @@ extensionality and weak function extensionality:
 ```rzk
 #assume funext : FunExt
 #assume extext : ExtExt
-#assume weakfunext : WeakFunExt
 ```
+
+## Prerequisites
+
+- `hott/*` - We require various prerequisites from homotopy type theory, for
+  instance function extensionality.
+- `hott/10-trivial-fibrations.rzk.md` — We use
+  `#!rzk is-equiv-projection-contractible-fibers` in the "Discrete types are
+  Rezk" section.
+- `02-simplicial-type-theory.rzk.md` — We rely on definitions of simplices and
+  their subshapes.
+- `03-extension-types.rzk.md` — We use extension extensionality.
+- `05-segal-types.rzk.md` - We make heavy use of the notion of Segal types (hom
+  types, composition, `#!rzk is-segal`).
+- `07-discrete.rzk.md` - We use discrete types, `#!rzk hom-eq`, and
+  `#!rzk is-segal-is-discrete` in the "Isomorphisms in discrete types" section.
 
 ## Isomorphisms
 
@@ -69,6 +83,13 @@ extensionality and weak function extensionality:
   ( x y : A)
   : U
   := Σ (f : hom A x y) , is-iso-arrow A is-segal-A x y f
+
+#def hom-iso
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( x y : A)
+  : Iso A is-segal-A x y → hom A x y
+  := \ (f , _) → f
 ```
 
 ## Invertible arrows
@@ -394,9 +415,42 @@ The predicate `#!rzk is-iso-arrow` is a proposition.
           ( second (second is-isof)))))
 ```
 
+Immediate corollary: two `Iso` values are equal if their first components are
+equal.
+
+```rzk
+#def eq-Iso-eq-first uses (extext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( x y : A)
+  ( iso1 iso2 : Iso A is-segal-A x y)
+  ( e : first iso1 = first iso2)
+  : iso1 = iso2
+  :=
+    path-of-pairs-pair-of-paths
+      ( hom A x y)
+      ( is-iso-arrow A is-segal-A x y)
+      ( first iso1)
+      ( first iso2)
+      ( e)
+      ( second iso1)
+      ( second iso2)
+      ( all-elements-equal-is-prop
+          ( is-iso-arrow A is-segal-A x y (first iso2))
+          ( is-prop-is-iso-arrow A is-segal-A x y (first iso2))
+          ( transport
+              ( hom A x y)
+              ( is-iso-arrow A is-segal-A x y)
+              ( first iso1)
+              ( first iso2)
+              ( e)
+              ( second iso1))
+          ( second iso2))
+```
+
 ## Isomorphism extensionality
 
-```rzk title="RS17, Proposition 10.3"
+```rzk title="RS17, Proposition 10.3a (for types)"
 #def ev-components-nat-trans-preserves-iso uses (funext)
   ( X : U)
   ( A : X → U)
@@ -589,7 +643,7 @@ The predicate `#!rzk is-iso-arrow` is a proposition.
     ( ev-components-nat-trans-preserves-iso X A is-segal-A f g α
     , nat-trans-nat-trans-components-preserves-iso X A is-segal-A f g α)
 
-#def equiv-is-iso-pointwise-is-iso uses (extext funext weakfunext)
+#def equiv-is-iso-pointwise-is-iso uses (extext funext)
   ( X : U)
   ( A : X → U)
   ( is-segal-A : (x : X) → is-segal (A x))
@@ -624,7 +678,7 @@ The predicate `#!rzk is-iso-arrow` is a proposition.
         ( f)
         ( g)
         ( α))
-      ( is-prop-fiberwise-prop funext weakfunext
+      ( is-prop-fiberwise-prop funext
         ( X)
         ( \ x →
           ( is-iso-arrow
@@ -643,8 +697,233 @@ The predicate `#!rzk is-iso-arrow` is a proposition.
       ( iff-is-iso-pointwise-is-iso X A is-segal-A f g α)
 ```
 
-```rzk title="RS17, Corollary 10.4"
-#def iso-extensionality uses (extext funext weakfunext)
+```rzk title="RS17, Proposition 10.3b (for shapes)"
+#def ev-components-nat-trans-preserves-iso-extension-type uses (extext)
+  ( I : CUBE)
+  ( ψ : I → TOPE)
+  ( A : ψ → U)
+  ( is-segal-A : (s : ψ) → is-segal (A s))
+  ( f g : (s : ψ) → A s)
+  ( α : nat-trans-extension-type I ψ A f g)
+  : ( is-iso-arrow
+      ( ( s : ψ) → A s)
+      ( is-segal-extension-type extext I ψ A is-segal-A) f g α)
+  → ( s : ψ)
+  → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+      ( ev-components-nat-trans-extension-type I ψ A f g α s))
+  :=
+    \ ((β , p) , (γ , q)) →
+    \ s →
+    ( ( ( \ t → β t s)
+    -- we prove
+    -- αₛ ∘ βₛ = (α ∘ β)ₛ = id_(f s) = (id_f)ₛ
+    -- the last equality is automatic (refl), so we omit it in the formalization
+    , ( concat
+        ( hom (A s) (f s) (f s))
+        ( comp-is-segal (A s) (is-segal-A s) (f s) (g s) (f s)
+            ( \ t → α t s)
+            ( \ t → β t s))
+        ( \ t →
+          comp-is-segal
+            ( ( s' : ψ) → A s')
+            ( is-segal-extension-type extext I ψ A is-segal-A)
+            ( f) (g) (f) (α) (β) t s)
+        ( id-hom (A s) (f s))
+        ( comp-components-comp-nat-trans-is-segal-extension-type
+          extext I ψ A is-segal-A f g f α β s)
+        ( ap
+          ( hom ((s : ψ) → A s) f f)
+          ( hom (A s) (f s) (f s))
+          ( comp-is-segal
+                ( ( s' : ψ) → A s')
+                ( is-segal-extension-type extext I ψ A is-segal-A)
+                ( f) (g) (f) (α) (β))
+          ( id-hom ((s : ψ) → A s) f)
+          ( \ c t → c t s)
+          p)))
+    , ( ( \ t → γ t s)
+    -- we prove
+    -- γₛ ∘ αₛ ≡ (γ ∘ α)ₛ ≡ id_(g s) ≡ (id_g)ₛ
+    -- the last equality is automatic (refl), so we omit it in the formalization
+      , ( concat
+          ( hom (A s) (g s) (g s))
+          ( comp-is-segal (A s) (is-segal-A s) (g s) (f s) (g s)
+            ( \ t → γ t s)
+            ( \ t → α t s))
+          ( \ t →
+            comp-is-segal
+              ( ( s' : ψ) → A s')
+              ( is-segal-extension-type extext I ψ A is-segal-A)
+              ( g) (f) (g) (γ) (α) t s)
+          ( id-hom (A s) (g s))
+          ( comp-components-comp-nat-trans-is-segal-extension-type
+            extext I ψ A is-segal-A g f g γ α s)
+          ( ap
+            ( hom ((s' : ψ) → A s') g g)
+            ( hom (A s) (g s) (g s))
+            ( comp-is-segal
+              ( ( s' : ψ) → A s')
+              ( is-segal-extension-type extext I ψ A is-segal-A)
+              ( g) (f) (g) (γ) (α))
+            ( id-hom ((s' : ψ) → A s') g)
+            ( \ c → \ t → c t s)
+            ( q)))))
+
+#def nat-trans-nat-trans-components-preserves-iso-helper-extension-type
+  uses (extext)
+  ( I : CUBE)
+  ( ψ : I → TOPE)
+  ( A : ψ → U)
+  ( is-segal-A : (s : ψ) → is-segal (A s))
+  ( f g : (s : ψ) → A s)
+  ( α : nat-trans-extension-type I ψ A f g)
+  ( β : nat-trans-extension-type I ψ A g f)
+  : ( ( s : ψ)
+    → ( comp-is-segal (A s) (is-segal-A s) (f s) (g s) (f s)
+        ( ev-components-nat-trans-extension-type I ψ A f g α s)
+        ( ev-components-nat-trans-extension-type I ψ A g f β s))
+    = ( id-hom (A s) (f s)))
+  → ( comp-is-segal
+      ( ( s : ψ) → A s)
+      ( is-segal-extension-type extext I ψ A is-segal-A)
+      f g f α β)
+  = ( id-hom ((s : ψ) → A s) f)
+  :=
+    \ H →
+    ap
+      ( ( s : ψ) → hom (A s) (f s) (f s))
+      ( hom ((s : ψ) → A s) f f)
+      ( \ s → \ t →
+        comp-is-segal
+          ( ( s' : ψ) → A s')
+          ( is-segal-extension-type extext I ψ A is-segal-A)
+          ( f) (g) (f) (α) (β) t s)
+      ( \ s → id-hom (A s) (f s))
+      ( \ ξ → \ t s → ξ s t)
+      ( naiveextext-extext extext I ψ (\ _ → ⊥)
+        ( \ s → hom (A s) (f s) (f s))
+        ( \ _ → recBOT)
+        ( \ s → \ t →
+          comp-is-segal
+            ( ( s' : ψ) → A s')
+            ( is-segal-extension-type extext I ψ A is-segal-A)
+            ( f) (g) (f) (α) (β) t s)
+        ( \ s → id-hom (A s) (f s))
+        ( \ s →
+          concat
+            ( hom (A s) (f s) (f s))
+            ( \ t →
+              comp-is-segal
+                ( ( s' : ψ) → A s')
+                ( is-segal-extension-type extext I ψ A is-segal-A)
+                ( f) (g) (f) (α) (β) t s)
+            ( comp-is-segal (A s) (is-segal-A s) (f s) (g s) (f s)
+              ( \ t → α t s)
+              ( \ t → β t s))
+            ( id-hom (A s) (f s))
+            ( rev
+              ( hom (A s) (f s) (f s))
+              ( comp-is-segal (A s) (is-segal-A s) (f s) (g s) (f s)
+                ( \ t → α t s)
+                ( \ t → β t s))
+              ( \ t →
+                comp-is-segal
+                  ( ( s' : ψ) → A s')
+                  ( is-segal-extension-type extext I ψ A is-segal-A)
+                  ( f) (g) (f) (α) (β) t s)
+              ( comp-components-comp-nat-trans-is-segal-extension-type
+                extext I ψ A is-segal-A f g f α β s))
+            ( H s)))
+
+#def nat-trans-nat-trans-components-preserves-iso-extension-type uses (extext)
+  ( I : CUBE)
+  ( ψ : I → TOPE)
+  ( A : ψ → U)
+  ( is-segal-A : (s : ψ) → is-segal (A s))
+  ( f g : (s : ψ) → A s)
+  ( α : nat-trans-extension-type I ψ A f g)
+  : ( ( s : ψ)
+    → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+        ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+  → ( is-iso-arrow
+      ( ( s : ψ) → A s)
+      ( is-segal-extension-type extext I ψ A is-segal-A) f g α)
+  :=
+    \ H →
+    ( ( \ t s → first (first (H s)) t
+      , nat-trans-nat-trans-components-preserves-iso-helper-extension-type
+          I ψ A is-segal-A f g α
+          ( \ t s → first (first (H s)) t)
+          ( \ s → second (first (H s))))
+    , ( \ t s → first (second (H s)) t
+      , nat-trans-nat-trans-components-preserves-iso-helper-extension-type
+          I ψ A is-segal-A g f
+          ( \ t s → first (second (H s)) t)
+          ( α)
+          ( \ s → second (second (H s)))))
+
+#def iff-is-iso-pointwise-is-iso-extension-type uses (extext)
+  ( I : CUBE)
+  ( ψ : I → TOPE)
+  ( A : ψ → U)
+  ( is-segal-A : (s : ψ) → is-segal (A s))
+  ( f g : (s : ψ) → A s)
+  ( α : nat-trans-extension-type I ψ A f g)
+  : iff
+    ( is-iso-arrow
+      ( ( s : ψ) → A s)
+      ( is-segal-extension-type extext I ψ A is-segal-A) f g α)
+    ( ( s : ψ)
+    → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+        ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+  :=
+    ( ev-components-nat-trans-preserves-iso-extension-type
+        I ψ A is-segal-A f g α
+    , nat-trans-nat-trans-components-preserves-iso-extension-type
+        I ψ A is-segal-A f g α)
+
+#def equiv-is-iso-pointwise-is-iso-extension-type uses (extext)
+  ( I : CUBE)
+  ( ψ : I → TOPE)
+  ( A : ψ → U)
+  ( is-segal-A : (s : ψ) → is-segal (A s))
+  ( f g : (s : ψ) → A s)
+  ( α : nat-trans-extension-type I ψ A f g)
+  : Equiv
+    ( is-iso-arrow
+      ( ( s : ψ) → A s)
+      ( is-segal-extension-type extext I ψ A is-segal-A) f g α)
+    ( ( s : ψ)
+    → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+        ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+  :=
+    equiv-iff-is-prop-is-prop
+      ( is-iso-arrow
+        ( ( s : ψ) → A s)
+        ( is-segal-extension-type extext I ψ A is-segal-A)
+        ( f) (g) (α))
+      ( ( s : ψ)
+      → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+          ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+      ( is-prop-is-iso-arrow
+        ( ( s : ψ) → A s)
+        ( is-segal-extension-type extext I ψ A is-segal-A)
+        ( f) (g) (α))
+      ( is-prop-shape-type-is-locally-prop
+        ( naiveextext-extext extext)
+        ( I) (ψ)
+        ( \ s →
+          is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+          ( ev-components-nat-trans-extension-type I ψ A f g α s))
+        ( \ s →
+          is-prop-is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+          ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+      ( iff-is-iso-pointwise-is-iso-extension-type
+          I ψ A is-segal-A f g α)
+```
+
+```rzk title="RS17, Corollary 10.4a (isomorphism extensionality)"
+#def iso-extensionality uses (extext funext)
   ( X : U)
   ( A : X → U)
   ( is-segal-A : (x : X) → is-segal (A x))
@@ -688,6 +967,58 @@ The predicate `#!rzk is-iso-arrow` is a proposition.
         ( equiv-choice X
           ( \ x → hom (A x) (f x) (g x))
           ( \ x αₓ → is-iso-arrow (A x) (is-segal-A x) (f x) (g x) αₓ)))
+```
+
+```rzk title="RS17, Corollary 10.4b (isomorphism extensionality for shapes)"
+#def iso-extensionality-extension-type uses (extext)
+  ( I : CUBE)
+  ( ψ : I → TOPE)
+  ( A : ψ → U)
+  ( is-segal-A : (s : ψ) → is-segal (A s))
+  ( f g : (s : ψ) → A s)
+  : Equiv
+      ( Iso
+          ( ( s : ψ) → A s)
+          ( is-segal-extension-type extext I ψ A is-segal-A)
+          f g)
+      ( ( s : ψ) → Iso (A s) (is-segal-A s) (f s) (g s))
+  :=
+    equiv-triple-comp
+      ( Iso
+          ( ( s : ψ) → A s)
+          ( is-segal-extension-type extext I ψ A is-segal-A)
+          f g)
+      ( Σ ( α : nat-trans-extension-type I ψ A f g)
+      , ( s : ψ)
+      → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+          ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+      ( Σ ( α' : nat-trans-components-extension-type I ψ A f g)
+      , ( s : ψ) → is-iso-arrow (A s) (is-segal-A s) (f s) (g s) (α' s))
+      ( ( s : ψ) → Iso (A s) (is-segal-A s) (f s) (g s))
+      ( total-equiv-family-of-equiv
+        ( nat-trans-extension-type I ψ A f g)
+        ( \ α →
+          ( is-iso-arrow
+            ( ( s : ψ) → A s)
+            ( is-segal-extension-type extext I ψ A is-segal-A)
+            f g α))
+        ( \ α →
+          ( s : ψ)
+        → ( is-iso-arrow (A s) (is-segal-A s) (f s) (g s)
+            ( ev-components-nat-trans-extension-type I ψ A f g α s)))
+        ( equiv-is-iso-pointwise-is-iso-extension-type I ψ A is-segal-A f g))
+      ( equiv-total-pullback-is-equiv
+        ( nat-trans-extension-type I ψ A f g)
+        ( nat-trans-components-extension-type I ψ A f g)
+        ( ev-components-nat-trans-extension-type I ψ A f g)
+        ( is-equiv-ev-components-nat-trans-extension-type I ψ A f g)
+        ( \ α' →
+          ( s : ψ) → is-iso-arrow (A s) (is-segal-A s) (f s) (g s) (α' s)))
+      ( inv-equiv-axiom-choice I ψ (\ _ → ⊥)
+        ( \ s → hom (A s) (f s) (g s))
+        ( \ s αₛ → is-iso-arrow (A s) (is-segal-A s) (f s) (g s) αₛ)
+        ( \ _ → recBOT)
+        ( \ _ → recBOT))
 ```
 
 ## Rezk types
@@ -749,6 +1080,16 @@ map from `#!rzk x = y` to `#!rzk Iso A is-segal-A x y` is an equivalence.
       → is-equiv (x = y) (Iso A is-segal-A x y) (iso-eq A is-segal-A x y))
 ```
 
+Rezk types are Segal.
+
+```rzk
+#def is-segal-is-rezk
+  ( A : U)
+  ( is-rezk-A : is-rezk A)
+  : is-segal A
+  := (first (is-rezk-A))
+```
+
 The inverse to `#!rzk iso-eq` for a Rezk type.
 
 ```rzk
@@ -762,7 +1103,20 @@ The inverse to `#!rzk iso-eq` for a Rezk type.
     ( iso-eq A (first is-rezk-A) x y)
     ( ( second is-rezk-A) x y)
 
-#def iso-eq-iso-is-rezk
+#def compute-iso-eq-eq-iso-is-rezk
+  ( A : U)
+  ( is-rezk-A : is-rezk A)
+  ( x y : A)
+  ( iso : Iso A (first is-rezk-A) x y)
+  : iso-eq A (first is-rezk-A) x y (eq-iso-is-rezk A is-rezk-A x y iso) = iso
+  :=
+  ( second
+    ( has-section-is-equiv (x = y) (Iso A (first is-rezk-A) x y)
+      ( iso-eq A (first is-rezk-A) x y)
+      ( ( second is-rezk-A) x y)))
+  iso
+
+#def compute-first-iso-eq-eq-iso-is-rezk
   ( A : U)
   ( is-rezk-A : is-rezk A)
   ( x y : A)
@@ -775,10 +1129,7 @@ The inverse to `#!rzk iso-eq` for a Rezk type.
     ( iso-eq A (first is-rezk-A) x y
       ( eq-iso-is-rezk A is-rezk-A x y (e , is-iso-e)))
     ( ( e , is-iso-e))
-    ( ( second
-      ( has-section-is-equiv (x = y) (Iso A (first is-rezk-A) x y)
-        ( iso-eq A (first is-rezk-A) x y)
-        ( ( second is-rezk-A) x y))) (e , is-iso-e))
+    ( compute-iso-eq-eq-iso-is-rezk A is-rezk-A x y (e , is-iso-e))
 ```
 
 The following results show how `#!rzk iso-eq` mediates between the
@@ -844,68 +1195,160 @@ arrows.
       ( e)
 ```
 
-```rzk title="RS17, Proposition 10.9"
--- #def factor123 uses (extext funext weakfunext)
---   ( A X : U)
---   ( is-rezk-A : is-rezk A)
---   ( f g : X → A)
---   : ( iso-eq
---       ( X → A)
---       ( is-segal-function-type
---         ( funext)
---         ( X)
---         ( \ _ → A)
---         ( \ _ → first (is-rezk-A)))
---       ( f)
---       ( g))
---   = comp
---       ( f = g)
---       ( ( x : X) → (f x =_{A} g x))
---       ( Iso
---         ( X → A)
---         ( is-segal-function-type
---           ( funext)
---           ( X)
---           ( \ _ → A)
---           ( \ _ → first (is-rezk-A)))
---         ( f)
---         ( g))
---       ( comp
---         ( ( x : X) → ((f x)=_{A} (g x)))
---         ( ( x : X) → (Iso A (first (is-rezk-A)) (f x) (g x)))
---         ( Iso
---           ( X → A)
---           ( is-segal-function-type
---             ( funext)
---             ( X)
---             ( \ _ → A)
---             ( \ _ → first (is-rezk-A)))
---           ( f)
---           ( g))
---         ( first (first (second(
---           ( iso-extensionality
---             ( X)
---             ( \ _ → A)
---             ( \ _ → first (is-rezk-A))
---             ( f)
---             ( g))))))
---         ( \ H → \ x → iso-eq A (first (is-rezk-A)) (f x) (g x) (H x)))
---       ( htpy-eq X (\ _ → A) f g)
---   := refl
+## Rezk function types
 
--- Needs more effort.
+If `A : X → U` is a family of Rezk types, then the function type `(x : X) → A x`
+is also Rezk.
 
--- #def is-rezk-function-type-is-rezk-target uses (funext)
---   ( A X : U)
---   ( is-rezk-A : is-rezk A)
---   : is-rezk((x : X) → A)
---   :=
---     ( is-segal-function-type
---       ( funext)
---       ( X)
---       ( \ _ → A)
---       ( \ _ → first (is-rezk-A))
---     , U)
+We first prove that `iso-eq` for function types is equal to the triple
+composition of `funext`, pointwise `iso-eq`, and `iso-extensionality`.
+
+```rzk
+#def triple-comp-iso-eq-function-type uses (funext extext)
+  ( X : U)
+  ( A : X → U)
+  ( fiberwise-is-rezk-A : (x : X) → is-rezk (A x))
+  ( f g : (x : X) → A x)
+  : ( f = g)
+  → Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g
+  :=
+    triple-comp
+      ( f = g)
+      ( ( x : X) → f x = g x)
+      ( ( x : X) → Iso (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x))
+      ( Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g)
+      ( first (inv-equiv
+        ( Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g)
+        ( ( x : X) → Iso (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x))
+        ( iso-extensionality X A (\ x → first (fiberwise-is-rezk-A x)) f g)))
+      ( first (equiv-function-equiv-family funext X
+        ( \ x → f x = g x)
+        ( \ x → Iso (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x))
+        ( \ x →
+          ( iso-eq (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x)
+          , second (fiberwise-is-rezk-A x) (f x) (g x)))))
+      ( first (equiv-FunExt funext X A f g))
+
+#def compute-iso-eq-function-type uses (extext funext)
+  ( X : U)
+  ( A : X → U)
+  ( fiberwise-is-rezk-A : (x : X) → is-rezk (A x))
+  ( f g : (x : X) → A x)
+  : ( iso-eq
+      ( ( x : X) → A x)
+      ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x)))
+      ( f)
+      ( g))
+  = ( triple-comp-iso-eq-function-type X A fiberwise-is-rezk-A f g)
+  :=
+    eq-htpy funext
+      ( f = g)
+      ( \ p →
+        Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g)
+      ( iso-eq
+        ( ( x : X) → A x)
+        ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x)))
+        ( f)
+        ( g))
+      ( triple-comp-iso-eq-function-type X A fiberwise-is-rezk-A f g)
+      ( \ p →
+        eq-Iso-eq-first
+          ( ( x : X) → A x)
+          ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x)))
+          ( f)
+          ( g)
+          ( iso-eq
+            ( ( x : X) → A x)
+            ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x)))
+            ( f)
+            ( g)
+            ( p))
+          ( triple-comp-iso-eq-function-type X A fiberwise-is-rezk-A f g p)
+          ( ind-path
+              ( ( x : X) → A x)
+              ( f)
+              ( \ g' p' →
+                ( first
+                  ( iso-eq
+                    ( ( x : X) → A x)
+                    ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x)))
+                    ( f)
+                    ( g')
+                    ( p')))
+                = ( first
+                    ( triple-comp-iso-eq-function-type X A fiberwise-is-rezk-A f g' p')))
+              ( refl)
+              ( g)
+              ( p)))
+```
+
+```rzk title="RS17, Proposition 10.9a (dependent function types into Rezk types are Rezk)"
+#def is-rezk-function-type uses (extext funext)
+  ( X : U)
+  ( A : X → U)
+  ( fiberwise-is-rezk-A : (x : X) → is-rezk (A x))
+  : is-rezk ((x : X) → A x)
+  :=
+    ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))
+    , \ f g →
+      transport-rev
+        ( ( f = g) → Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g)
+        ( \ h → is-equiv (f = g) (Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g) h)
+        ( iso-eq
+          ( ( x : X) → A x)
+          ( is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x)))
+          ( f)
+          ( g))
+        ( triple-comp-iso-eq-function-type X A fiberwise-is-rezk-A f g)
+        ( compute-iso-eq-function-type X A fiberwise-is-rezk-A f g)
+        ( second
+          ( equiv-triple-comp
+            ( f = g)
+            ( ( x : X) → f x = g x)
+            ( ( x : X) → Iso (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x))
+            ( Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g)
+            ( equiv-FunExt funext X A f g)
+            ( equiv-function-equiv-family funext X
+              ( \ x → f x = g x)
+              ( \ x → Iso (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x))
+              ( \ x →
+                ( iso-eq (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x)
+                , second (fiberwise-is-rezk-A x) (f x) (g x))))
+            ( inv-equiv
+              ( Iso ((x : X) → A x) (is-segal-function-type funext X A (\ x → first (fiberwise-is-rezk-A x))) f g)
+              ( ( x : X) → Iso (A x) (first (fiberwise-is-rezk-A x)) (f x) (g x))
+              ( iso-extensionality X A (\ x → first (fiberwise-is-rezk-A x)) f g)))))
+```
+
+## Isomorphisms Induction
+
+Since isomorphisms are equivalent to equalities in Rezk types, we can prove the
+same induction principle for them.
+
+```rzk
+#def iso-ind-is-rezk
+  ( A : U)
+  ( is-rezk-A : is-rezk A)
+  ( x : A)
+  ( C : (y : A) → (Iso A (first is-rezk-A) x y) → U)
+  ( d : C x (iso-eq A (first is-rezk-A) x x refl))
+  ( y : A)
+  ( f : Iso A (first is-rezk-A) x y)
+  : C y f
+  :=
+  transport
+  ( Iso A (first is-rezk-A) x y)
+  ( \ f → C y f)
+  ( iso-eq A (first is-rezk-A) x y (eq-iso-is-rezk A is-rezk-A x y f))
+  ( f)
+  ( compute-iso-eq-eq-iso-is-rezk A is-rezk-A x y f)
+  ( ind-path
+    ( A)
+    ( x)
+    ( \ y p → C y (iso-eq A (first is-rezk-A) x y p))
+    ( d)
+    ( y)
+    ( eq-iso-is-rezk A is-rezk-A x y f))
 ```
 
 ## Isomorphisms in discrete types
@@ -1037,11 +1480,11 @@ equivalence with no extra data, and then define some helpers.
   : ( x : A) → (hom A a' x) → (hom A a x)
   := \ x → first (inverse-representable-equiv x)
 
-#def arr-map-representable-equiv
+#def arr-map-representable-equiv uses (ψ)
   : hom A a' a
   := evid A a (hom A a') (map-representable-equiv)
 
-#def arr-inv-map-representable-equiv
+#def arr-inv-map-representable-equiv uses (ψ)
   : hom A a a'
   := evid A a' (hom A a) (inv-map-representable-equiv)
 ```
@@ -1167,7 +1610,7 @@ We compute the required paths for the section of
         ( a)
         ( id-hom A a)))
 
-#def compute-htpy-inv-map-fib-equiv-map-fib-equiv-id
+#def compute-htpy-inv-map-fib-equiv-map-fib-equiv-id uses (ψ a')
   : inv-map-representable-equiv a (map-representable-equiv a (id-hom A a))
   =_{ hom A a a}
     id-hom A a

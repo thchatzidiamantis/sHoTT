@@ -11,12 +11,12 @@ This is a literate `rzk` file:
 ## Prerequisites
 
 - `hott/01-paths.rzk.md` - We require basic path algebra.
-- `hott/02-contractible.rzk.md` - We require the notion of contractible types
+- `hott/06-contractible.rzk.md` - We require the notion of contractible types
   and their data.
-- `hott/total-space.md` — We rely on
+- `hott/10-trivial-fibrations.rzk.md` — We rely on
   `#!rzk is-equiv-projection-contractible-fibers` and
   `#!rzk projection-total-type` in the proof of Theorem 5.5.
-- `02-simplicial-type-theory.rzk.md` — We rely on definitions of simplicies and
+- `02-simplicial-type-theory.rzk.md` — We rely on definitions of simplices and
   their subshapes.
 - `03-extension-types.rzk.md` — We use the fubini theorem and extension
   extensionality.
@@ -606,34 +606,14 @@ all $x$ then $(x : X) → A x$ is a Segal type.
   ( fiberwise-is-segal-A : (x : X) → is-local-horn-inclusion (A x))
   : is-local-horn-inclusion ((x : X) → A x)
   :=
-    is-equiv-triple-comp
-      ( Δ² → ((x : X) → A x))
-      ( ( x : X) → Δ² → A x)
-      ( ( x : X) → Λ → A x)
-      ( Λ → ((x : X) → A x))
-      ( \ g x t → g t x) -- first equivalence
-      ( second (flip-ext-fun
-        ( 2 × 2)
-        ( Δ²)
-        ( \ t → BOT)
-        ( X)
-        ( \ t → A)
-        ( \ t → recBOT)))
-      ( \ h x t → h x t) -- second equivalence
-      ( second (equiv-function-equiv-family
-        ( funext)
-        ( X)
-        ( \ x → (Δ² → A x))
-        ( \ x → (Λ → A x))
-        ( \ x → (horn-restriction (A x) , fiberwise-is-segal-A x))))
-      ( \ h t x → (h x) t) -- third equivalence
-      ( second (flip-ext-fun-inv
-        ( 2 × 2)
-        ( Λ)
-        ( \ t → BOT)
-        ( X)
-        ( \ t → A)
-        ( \ t → recBOT)))
+    is-local-function-type-fiberwise-is-local
+      ( funext)
+      ( 2 × 2)
+      ( Δ²)
+      ( \ t → Λ t)
+      ( X)
+      ( A)
+      ( fiberwise-is-segal-A)
 
 #def is-segal-function-type uses (funext)
   ( X : U)
@@ -659,39 +639,15 @@ then $(x : X) → A x$ is a Segal type.
   ( fiberwise-is-segal-A : (s : ψ) → is-local-horn-inclusion (A s))
   : is-local-horn-inclusion ((s : ψ) → A s)
   :=
-    is-equiv-triple-comp
-      ( Δ² → (s : ψ) → A s)
-      ( ( s : ψ) → Δ² → A s)
-      ( ( s : ψ) → Λ → A s)
-      ( Λ → (s : ψ) → A s)
-      ( \ g s t → g t s)  -- first equivalence
-      ( second
-        ( fubini
-          ( 2 × 2)
-          ( I)
-          ( Δ²)
-          ( \ t → BOT)
-          ( ψ)
-          ( \ s → BOT)
-          ( \ t s → A s)
-          ( \ u → recBOT)))
-      ( \ h s t → h s t) -- second equivalence
-      ( second (equiv-extensions-equiv extext I ψ (\ _ → BOT)
-        ( \ s → Δ² → A s)
-        ( \ s → Λ → A s)
-        ( \ s → (horn-restriction (A s) , fiberwise-is-segal-A s))
-        ( \ _ → recBOT)))
-      ( \ h t s → (h s) t) -- third equivalence
-      ( second
-        ( fubini
-          ( I)
-          ( 2 × 2)
-          ( ψ)
-          ( \ s → BOT)
-          ( Λ)
-          ( \ t → BOT)
-          ( \ s t → A s)
-          ( \ u → recBOT)))
+    is-local-subshape-inclusion-extension-type
+      ( extext)
+      ( I)
+      ( 2 × 2)
+      ( ψ)
+      ( Δ²)
+      ( \ t → Λ t)
+      ( A)
+      ( fiberwise-is-segal-A)
 
 #def is-segal-extension-type uses (extext)
   ( I : CUBE)
@@ -1813,23 +1769,26 @@ general statements about weak anodyne shape inclusions.
         ( \ s t → h (s , t)))
 ```
 
-The following argument from RS17 proves that `Λ³₂ ⊂ Δ³` is weakly inner anodyne.
-It should be easy to adapt it to prove that it is actually inner anodyne.
+The following argument from RS17 proves that `Λ³₁ ⊂ Δ³` is weakly inner anodyne.
+The dual inner horn `Λ³₂` is weakly inner anodyne by the same pushout-product
+argument with a face-1 (`t₁ ≡ t₂`) case split; we formalise the `Λ³₁` case here
+since it is the one used in the retract below. It should be easy to adapt either
+argument to show that the inclusions are actually inner anodyne.
 
-```rzk title="RS17, lemma 5.21"
-#section retraction-Λ³₂-Δ³-pushout-product-Λ²₁-Δ²
+```rzk title="RS17, lemma 5.21 (inner horn Λ³₁)"
+#section retraction-Λ³₁-Δ³-pushout-product-Λ²₁-Δ²
 
--- Δ³×Λ²₁ ∪_{Λ³₂×Λ²₁} Λ³₂×Δ²
-#def pushout-prod-Λ³₂-Λ²₁
+-- Δ³×Λ²₁ ∪_{Λ³₁×Λ²₁} Λ³₁×Δ²
+#def pushout-prod-Λ³₁-Λ²₁
   : ( Δ³×Δ²) → TOPE
-  := shape-pushout-prod (2 × 2 × 2) (2 × 2) Δ³ Λ³₂ Δ² Λ²₁
+  := shape-pushout-prod (2 × 2 × 2) (2 × 2) Δ³ Λ³₁ Δ² Λ²₁
 
 
 #variable A : U
-#variable h : Λ³₂ → A
+#variable h : Λ³₁ → A
 
 #def h^
-  : pushout-prod-Λ³₂-Λ²₁ → A
+  : pushout-prod-Λ³₁-Λ²₁ → A
   := \ (((t1 , t2) , t3) , (s1 , s2)) →
     recOR
       ( s1 ≤ t1 ∧ t2 ≤ s2 ↦ h ((t1 , t2) , t3)
@@ -1840,22 +1799,22 @@ It should be easy to adapt it to prove that it is actually inner anodyne.
       , t1 ≤ s1 ∧ s2 ≤ t3 ↦ h ((s1 , s2) , s2))
 
 
-#def extend-against-Λ³₂-Δ³
+#def extend-against-Λ³₁-Δ³
   : U
-  := (t : Δ³) → A[ Λ³₂ t ↦ h t ]
+  := (t : Δ³) → A[ Λ³₁ t ↦ h t ]
 
-#def extend-against-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ² uses (h)
+#def extend-against-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ² uses (h)
   : U
-  := (x : Δ³×Δ²) → A[ pushout-prod-Λ³₂-Λ²₁ x ↦ h^ x]
+  := (x : Δ³×Δ²) → A[ pushout-prod-Λ³₁-Λ²₁ x ↦ h^ x]
 
-#def retract-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ² uses (A h)
-  ( f : extend-against-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²)
-  : extend-against-Λ³₂-Δ³
+#def retract-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ² uses (A h)
+  ( f : extend-against-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²)
+  : extend-against-Λ³₁-Δ³
   := \ ((t1 , t2) , t3) → f (((t1 , t2) , t3) , (t1 , t2))
 
-#def section-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ² uses (A h)
-  ( g : (t : Δ³) → A[ Λ³₂ t ↦ h t ])
-  : ( x : Δ³×Δ²) → A[ pushout-prod-Λ³₂-Λ²₁ x ↦ h^ x]
+#def section-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ² uses (A h)
+  ( g : (t : Δ³) → A[ Λ³₁ t ↦ h t ])
+  : ( x : Δ³×Δ²) → A[ pushout-prod-Λ³₁-Λ²₁ x ↦ h^ x]
   :=
     \ (((t1 , t2) , t3) , (s1 , s2)) →
     recOR
@@ -1866,41 +1825,41 @@ It should be easy to adapt it to prove that it is actually inner anodyne.
       , s1 ≤ t1 ∧ s2 ≤ t3 ↦ g ((t1 , s2) , s2)
       , t1 ≤ s1 ∧ s2 ≤ t3 ↦ g ((s1 , s2) , s2))
 
-#def homotopy-retraction-section-id-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ² uses (A h)
-  : homotopy extend-against-Λ³₂-Δ³ extend-against-Λ³₂-Δ³
+#def homotopy-retraction-section-id-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ² uses (A h)
+  : homotopy extend-against-Λ³₁-Δ³ extend-against-Λ³₁-Δ³
     ( comp
-      ( extend-against-Λ³₂-Δ³)
-      ( extend-against-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²)
-      ( extend-against-Λ³₂-Δ³)
-      ( retract-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²)
-      ( section-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²))
-    ( identity extend-against-Λ³₂-Δ³)
+      ( extend-against-Λ³₁-Δ³)
+      ( extend-against-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²)
+      ( extend-against-Λ³₁-Δ³)
+      ( retract-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²)
+      ( section-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²))
+    ( identity extend-against-Λ³₁-Δ³)
   := \ t → refl
 
 #def is-retract-of-Δ³-Δ³×Δ² uses (A h)
   : is-retract-of
-      extend-against-Λ³₂-Δ³
-      extend-against-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²
+      extend-against-Λ³₁-Δ³
+      extend-against-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²
   :=
-    ( section-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²
-    , ( retract-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²
-      , homotopy-retraction-section-id-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ²))
+    ( section-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²
+    , ( retract-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²
+      , homotopy-retraction-section-id-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²))
 
-#end retraction-Λ³₂-Δ³-pushout-product-Λ²₁-Δ²
+#end retraction-Λ³₁-Δ³-pushout-product-Λ²₁-Δ²
 
-#def is-weak-inner-anodyne-Δ³-Λ³₂ uses (weakextext)
-  : is-weak-inner-anodyne (2 × 2 × 2) Δ³ Λ³₂
+#def is-weak-inner-anodyne-Δ³-Λ³₁ uses (weakextext)
+  : is-weak-inner-anodyne (2 × 2 × 2) Δ³ Λ³₁
   :=
     \ A is-segal-A h →
     is-contr-is-retract-of-is-contr
-      ( extend-against-Λ³₂-Δ³ A h)
-      ( extend-against-pushout-prod-Λ³₂-Λ²₁-Δ³×Δ² A h)
+      ( extend-against-Λ³₁-Δ³ A h)
+      ( extend-against-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ² A h)
       ( is-retract-of-Δ³-Δ³×Δ² A h)
       ( is-weak-inner-anodyne-pushout-product-right-is-weak-inner-anodyne
         ( 2 × 2 × 2)
         ( 2 × 2)
         ( Δ³)
-        ( Λ³₂)
+        ( Λ³₁)
         ( Δ²)
         ( Λ²₁)
         ( is-weak-inner-anodyne-Λ²₁)
