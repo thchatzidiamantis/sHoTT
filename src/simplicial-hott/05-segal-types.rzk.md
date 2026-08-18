@@ -1628,6 +1628,56 @@ Interchange law
 #end homotopy-interchange-law
 ```
 
+```rzk title="RS17, Proposition 5.16"
+#def horn-concatenation-is-segal uses (extext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( x y z w : A)
+  ( f : hom A x y)
+  ( g : hom A y z)
+  ( h : hom A z w)
+  ( k : hom A x z)
+  ( l : hom A y w)
+  ( m : hom A x w)
+  ( p : (comp-is-segal A is-segal-A x y z f g) = k)
+  ( q : (comp-is-segal A is-segal-A y z w g h) = l)
+  ( r : (comp-is-segal A is-segal-A x z w k h) = m)
+  : ( comp-is-segal A is-segal-A x y w f l) = m
+  :=
+    concat
+      ( hom A x w)
+      ( comp-is-segal A is-segal-A x y w f l)
+      ( comp-is-segal A is-segal-A x z w k h)
+      ( m)
+      ( concat
+        ( hom A x w)
+        ( comp-is-segal A is-segal-A x y w f l)
+        ( comp-is-segal A is-segal-A x z w k h)
+        ( comp-is-segal A is-segal-A x z w k h)
+        ( concat
+          ( hom A x w)
+          ( comp-is-segal A is-segal-A x y w f l)
+          ( comp-is-segal A is-segal-A x y w f (comp-is-segal A is-segal-A y z w g h))
+          ( comp-is-segal A is-segal-A x z w k h)
+          ( rev
+            ( hom A x w)
+            ( comp-is-segal A is-segal-A x y w f (comp-is-segal A is-segal-A y z w g h))
+            ( comp-is-segal A is-segal-A x y w f l)
+            ( prewhisker-homotopy-is-segal
+              A is-segal-A x y w f (comp-is-segal A is-segal-A y z w g h) l q))
+          ( concat
+            ( hom A x w)
+            ( comp-is-segal A is-segal-A x y w f (comp-is-segal A is-segal-A y z w g h))
+            ( comp-is-segal A is-segal-A x z w (comp-is-segal A is-segal-A x y z f g) h)
+            ( comp-is-segal A is-segal-A x z w k h)
+            ( rev-associative-is-segal A is-segal-A x y z w f g h)
+            ( postwhisker-homotopy-is-segal
+              A is-segal-A x z w (comp-is-segal A is-segal-A x y z f g) k h p)))
+        ( refl)
+      )
+      ( r)
+```
+
 ## Inner anodyne shape inclusions
 
 An **inner fibration** is a map `α : A' → A` which is right orthogonal to
@@ -1721,7 +1771,7 @@ Weak inner anodyne shape inclusions are preserved under pushout product. This is
 the direct proof from RS17. One could also deduce it from the corresponding
 general statements about weak anodyne shape inclusions.
 
-```rzk title="RS17, lemma 5.20"
+```rzk title="RS17, Proposition 5.20"
 #def is-weak-inner-anodyne-pushout-product-left-is-weak-inner-anodyne uses (weakextext)
   ( I J : CUBE)
   ( ψ : I → TOPE)
@@ -1775,7 +1825,7 @@ argument with a face-1 (`t₁ ≡ t₂`) case split; we formalise the `Λ³₁` 
 since it is the one used in the retract below. It should be easy to adapt either
 argument to show that the inclusions are actually inner anodyne.
 
-```rzk title="RS17, lemma 5.21 (inner horn Λ³₁)"
+```rzk
 #section retraction-Λ³₁-Δ³-pushout-product-Λ²₁-Δ²
 
 -- Δ³×Λ²₁ ∪_{Λ³₁×Λ²₁} Λ³₁×Δ²
@@ -1846,7 +1896,9 @@ argument to show that the inclusions are actually inner anodyne.
       , homotopy-retraction-section-id-pushout-prod-Λ³₁-Λ²₁-Δ³×Δ²))
 
 #end retraction-Λ³₁-Δ³-pushout-product-Λ²₁-Δ²
+```
 
+```rzk title="RS17, Proposition 5.21 (inner horn Λ³₁)"
 #def is-weak-inner-anodyne-Δ³-Λ³₁ uses (weakextext)
   : is-weak-inner-anodyne (2 × 2 × 2) Δ³ Λ³₁
   :=
@@ -1866,6 +1918,19 @@ argument to show that the inclusions are actually inner anodyne.
         ( A)
         ( is-segal-A)
         ( h^ A h))
+```
+
+As an immediate corollary, Segal types admit contractible fillers for the
+3-dimensional inner horn `Λ³₁ ⊂ Δ³`. This can be seen as a version of [RS17,
+Proposition 5.16]:
+
+```rzk title="Contractible fillers for the inner horn Λ³₁ in Segal types"
+#def is-contr-fill-Λ³₁-Δ³-is-segal uses (weakextext)
+  ( A : U)
+  ( is-segal-A : is-segal A)
+  ( h : Λ³₁ → A)
+  : is-contr ((t : Δ³) → A[ Λ³₁ t ↦ h t ])
+  := is-weak-inner-anodyne-Δ³-Λ³₁ A is-segal-A h
 ```
 
 ## Products of Segal types
