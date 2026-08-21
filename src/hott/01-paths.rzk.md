@@ -718,6 +718,32 @@ Application of a function to homotopic paths yields homotopic paths.
 #end transport
 ```
 
+```rzk
+#data Void
+
+#data Bool := false | true
+
+#def false-ne-true-family (x : Bool)
+  : U
+  := match x (false ⇒ Unit | true ⇒ Void)
+
+#def false-ne-true
+  : ( false = true) → Void
+  := \ p → transport Bool false-ne-true-family false true p unit
+
+#data Nat := zero | succ (n : Nat)
+
+#def zero-ne-succ-family
+  : Nat → U
+  := rec-Nat U Unit (\ _ _ → Void)
+
+#def zero-ne-succ (n : Nat)
+  : ( zero = succ n) → Void
+  := \ p → transport Nat zero-ne-succ-family zero (succ n) p unit
+```
+
+- Other suggested exercise: show that `bool` is equivalent to `coprod Unit Unit`.
+
 ### Substitution law for transport
 
 ```rzk
